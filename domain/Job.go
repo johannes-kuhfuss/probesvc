@@ -40,7 +40,8 @@ func NewJob(name string, srcurl string) (*Job, api_error.ApiErr) {
 
 	var jobName string
 	if strings.TrimSpace(name) == "" {
-		jobName = fmt.Sprintf("new job @ %s", date.GetNowUtcString())
+		newDate, _ := date.GetNowLocalString("")
+		jobName = fmt.Sprintf("new job @ %s", *newDate)
 	} else {
 		jobName = name
 	}

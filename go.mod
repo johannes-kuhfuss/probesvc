@@ -3,7 +3,7 @@ module github.com/johannes-kuhfuss/probesvc
 go 1.17
 
 require (
-	github.com/johannes-kuhfuss/services_utils v1.0.3
+	github.com/johannes-kuhfuss/services_utils v1.0.4
 	github.com/segmentio/ksuid v1.0.4
 	github.com/stretchr/testify v1.7.0
 )

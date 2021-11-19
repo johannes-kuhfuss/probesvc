@@ -33,11 +33,7 @@ type Job struct {
 	TechInfo   string    `json:"tech_info"`
 }
 
-func NewJob(name string, srcurl string) (*Job, api_error.ApiErr) {
-	if strings.TrimSpace(srcurl) == "" {
-		return nil, api_error.NewBadRequestError("Job must have a source URL")
-	}
-
+func createJobName(name string) string {
 	var jobName string
 	if strings.TrimSpace(name) == "" {
 		newDate, _ := date.GetNowLocalString("")
@@ -45,10 +41,17 @@ func NewJob(name string, srcurl string) (*Job, api_error.ApiErr) {
 	} else {
 		jobName = name
 	}
+	return jobName
+}
+
+func NewJob(name string, srcurl string) (*Job, api_error.ApiErr) {
+	if strings.TrimSpace(srcurl) == "" {
+		return nil, api_error.NewBadRequestError("Job must have a source URL")
+	}
 
 	return &Job{
 		Id:         ksuid.New().String(),
-		Name:       jobName,
+		Name:       createJobName(name),
 		CreatedAt:  date.GetNowUtcString(),
 		CreatedBy:  "",
 		ModifiedAt: "",

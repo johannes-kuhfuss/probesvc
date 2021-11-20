@@ -14,14 +14,15 @@ const (
 	validSrcUrl string = "https://server/path/file.ext"
 )
 
-func isValidKSUID(id string) bool {
-	_, parseErr := ksuid.Parse(id)
+func isValidKSUID(id ksuid.KSUID) bool {
+	_, parseErr := ksuid.Parse(id.String())
 	return parseErr == nil
 }
 
-func isValidDate(dateStr string) bool {
-	_, parseErr := time.Parse(date.ApiDateLayout, dateStr)
-	return parseErr == nil
+func isNowDate(t1, t2 time.Time) bool {
+	t1r := t1.Round(1 * time.Minute)
+	t2r := t2.Round(1 * time.Minute)
+	return t1r == t2r
 }
 
 func TestConstants(t *testing.T) {
@@ -42,14 +43,15 @@ func Test_NewJob_NoSrUrl_ReturnsBadRequestErr(t *testing.T) {
 }
 
 func Test_NewJob_NoName_Returns_NewJob(t *testing.T) {
+	now := date.GetNowUtc()
 	newJob, err := NewJob("", validSrcUrl)
 	assert.NotNil(t, newJob)
 	assert.Nil(t, err)
 	assert.True(t, isValidKSUID(newJob.Id))
 	assert.Contains(t, newJob.Name, "new job @")
-	assert.True(t, isValidDate(newJob.CreatedAt))
+	assert.True(t, isNowDate(newJob.CreatedAt, now))
 	assert.Empty(t, newJob.CreatedBy)
-	assert.Empty(t, newJob.ModifiedAt)
+	assert.EqualValues(t, time.Time{}, newJob.ModifiedAt)
 	assert.Empty(t, newJob.ModifiedBy)
 	assert.EqualValues(t, validSrcUrl, newJob.SrcUrl)
 	assert.EqualValues(t, JobStatusCreated, newJob.Status)

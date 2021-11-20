@@ -3,6 +3,7 @@ package domain
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/johannes-kuhfuss/services_utils/api_error"
 	"github.com/johannes-kuhfuss/services_utils/date"
@@ -21,16 +22,16 @@ const (
 )
 
 type Job struct {
-	Id         string    `json:"id"`
-	Name       string    `json:"name"`
-	CreatedAt  string    `json:"created_at"`
-	CreatedBy  string    `json:"created_by"`
-	ModifiedAt string    `json:"modified_at"`
-	ModifiedBy string    `json:"modified_by"`
-	SrcUrl     string    `json:"src_url"`
-	Status     JobStatus `json:"status"`
-	ErrorMsg   string    `json:"error_msg"`
-	TechInfo   string    `json:"tech_info"`
+	Id         ksuid.KSUID
+	Name       string
+	CreatedAt  time.Time
+	CreatedBy  string
+	ModifiedAt time.Time
+	ModifiedBy string
+	SrcUrl     string
+	Status     JobStatus
+	ErrorMsg   string
+	TechInfo   string
 }
 
 func createJobName(name string) string {
@@ -50,11 +51,11 @@ func NewJob(name string, srcurl string) (*Job, api_error.ApiErr) {
 	}
 
 	return &Job{
-		Id:         ksuid.New().String(),
+		Id:         ksuid.New(),
 		Name:       createJobName(name),
-		CreatedAt:  date.GetNowUtcString(),
+		CreatedAt:  date.GetNowUtc(),
 		CreatedBy:  "",
-		ModifiedAt: "",
+		ModifiedAt: time.Time{},
 		ModifiedBy: "",
 		SrcUrl:     srcurl,
 		Status:     JobStatusCreated,

@@ -9,7 +9,7 @@ import (
 
 func mapUrls() {
 	logger.Debug("Mapping URLs")
-	jh := controller.JobHandlers{service.NewJobService(domain.NewJobRepositoryStub())}
+	jh := controller.JobHandlers{Service: service.NewJobService(domain.NewJobRepositoryStub())}
 	router.GET("/jobs", jh.GetAllJobs)
 	logger.Debug("Done mapping URLs")
 }

@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/johannes-kuhfuss/probesvc/domain/service"
+	"github.com/johannes-kuhfuss/probesvc/service"
 	"github.com/johannes-kuhfuss/services_utils/logger"
 )
 

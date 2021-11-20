@@ -3,7 +3,7 @@ package app
 import (
 	"github.com/johannes-kuhfuss/probesvc/controller"
 	"github.com/johannes-kuhfuss/probesvc/domain"
-	"github.com/johannes-kuhfuss/probesvc/domain/service"
+	"github.com/johannes-kuhfuss/probesvc/service"
 	"github.com/johannes-kuhfuss/services_utils/logger"
 )
 

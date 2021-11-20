@@ -34,6 +34,12 @@ type Job struct {
 	TechInfo   string
 }
 
+type Jobs []Job
+
+type JobRepository interface {
+	FindAll() (*Jobs, api_error.ApiErr)
+}
+
 func createJobName(name string) string {
 	var jobName string
 	if strings.TrimSpace(name) == "" {

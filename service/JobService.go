@@ -7,16 +7,21 @@ import (
 
 type JobService interface {
 	GetAllJobs() (*domain.Jobs, api_error.ApiErr)
+	GetJobById(string) (*domain.Job, api_error.ApiErr)
 }
 
 type DefaultJobService struct {
 	repo domain.JobRepository
 }
 
+func NewJobService(repository domain.JobRepository) DefaultJobService {
+	return DefaultJobService{repository}
+}
+
 func (s DefaultJobService) GetAllJobs() (*domain.Jobs, api_error.ApiErr) {
 	return s.repo.FindAll()
 }
 
-func NewJobService(repository domain.JobRepository) DefaultJobService {
-	return DefaultJobService{repository}
+func (s DefaultJobService) GetJobById(id string) (*domain.Job, api_error.ApiErr) {
+	return s.repo.FindById(id)
 }

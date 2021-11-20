@@ -26,7 +26,6 @@ func NewJobRepositoryDb() JobRepositoryDb {
 }
 
 func (csdb JobRepositoryDb) FindAll() (*Jobs, api_error.ApiErr) {
-
 	findAllSql := "SELECT job_id, name, src_url, status FROM jobList"
 	rows, err := csdb.dbclient.Query(findAllSql)
 	if err != nil {
@@ -44,4 +43,16 @@ func (csdb JobRepositoryDb) FindAll() (*Jobs, api_error.ApiErr) {
 		jobs = append(jobs, j)
 	}
 	return &jobs, nil
+}
+
+func (csdb JobRepositoryDb) FindById(id string) (*Job, api_error.ApiErr) {
+	findByIdSql := "SELECT job_id, name, src_url, status FROM jobList WHERE job_id = ?"
+	row := csdb.dbclient.QueryRow(findByIdSql, id)
+	var j Job
+	err := row.Scan(&j.Id, &j.Name, &j.SrcUrl, &j.Status)
+	if err != nil {
+		logger.Error("Error while scanning job from DB", err)
+		return nil, api_error.NewInternalServerError("Error while scanning job from DB", err)
+	}
+	return &j, nil
 }

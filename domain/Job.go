@@ -38,6 +38,7 @@ type Jobs []Job
 
 type JobRepository interface {
 	FindAll() (*Jobs, api_error.ApiErr)
+	FindById(string) (*Job, api_error.ApiErr)
 }
 
 func createJobName(name string) string {

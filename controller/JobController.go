@@ -28,7 +28,7 @@ func (jh *JobHandlers) GetAllJobs(c *gin.Context) {
 	jobs, err := jh.Service.GetAllJobs()
 	if err != nil {
 		logger.Error("Service error while getting all jobs", err)
-		c.JSON(err.StatusCode(), err.Message())
+		c.JSON(err.StatusCode(), err)
 		return
 	}
 	c.JSON(http.StatusOK, jobs)
@@ -39,13 +39,13 @@ func (jh *JobHandlers) GetJobById(c *gin.Context) {
 	logger.Debug("Processing get job by id request")
 	jobId, err := getJobId(c.Param("job_id"))
 	if err != nil {
-		c.JSON(err.StatusCode(), err.Message())
+		c.JSON(err.StatusCode(), err)
 		return
 	}
 	job, err := jh.Service.GetJobById(jobId)
 	if err != nil {
 		logger.Error("Service error while getting job by id", err)
-		c.JSON(err.StatusCode(), err.Message())
+		c.JSON(err.StatusCode(), err)
 		return
 	}
 	c.JSON(http.StatusOK, job)

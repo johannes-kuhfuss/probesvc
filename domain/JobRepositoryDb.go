@@ -2,6 +2,7 @@ package domain
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/johannes-kuhfuss/services_utils/api_error"
@@ -30,7 +31,7 @@ func (csdb JobRepositoryDb) FindAll() (*Jobs, api_error.ApiErr) {
 	rows, err := csdb.dbclient.Query(findAllSql)
 	if err != nil {
 		logger.Error("Error while querying job list from DB", err)
-		return nil, api_error.NewInternalServerError("Error while querying job list from DB", err)
+		return nil, api_error.NewInternalServerError("Unexpected database error", nil)
 	}
 	jobs := make(Jobs, 0)
 	for rows.Next() {
@@ -38,7 +39,7 @@ func (csdb JobRepositoryDb) FindAll() (*Jobs, api_error.ApiErr) {
 		err := rows.Scan(&j.Id, &j.Name, &j.SrcUrl, &j.Status)
 		if err != nil {
 			logger.Error("Error while scanning job list from DB", err)
-			return nil, api_error.NewInternalServerError("Error while scanning job list from DB", err)
+			return nil, api_error.NewInternalServerError("Unexpected database error", nil)
 		}
 		jobs = append(jobs, j)
 	}
@@ -51,8 +52,12 @@ func (csdb JobRepositoryDb) FindById(id string) (*Job, api_error.ApiErr) {
 	var j Job
 	err := row.Scan(&j.Id, &j.Name, &j.SrcUrl, &j.Status)
 	if err != nil {
-		logger.Error("Error while scanning job from DB", err)
-		return nil, api_error.NewInternalServerError("Error while scanning job from DB", err)
+		if err == sql.ErrNoRows {
+			return nil, api_error.NewNotFoundError(fmt.Sprintf("customer with id %v not found", id))
+		} else {
+			logger.Error("Error while scanning job from DB", err)
+			return nil, api_error.NewInternalServerError("Unexpected database error", nil)
+		}
 	}
 	return &j, nil
 }

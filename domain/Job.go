@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/johannes-kuhfuss/probesvc/dto"
 	"github.com/johannes-kuhfuss/services_utils/api_error"
 	"github.com/johannes-kuhfuss/services_utils/date"
 	"github.com/segmentio/ksuid"
@@ -69,4 +70,19 @@ func NewJob(name string, srcurl string) (*Job, api_error.ApiErr) {
 		ErrorMsg:   "",
 		TechInfo:   "",
 	}, nil
+}
+
+func (job Job) ToDto() dto.JobResponse {
+	return dto.JobResponse{
+		Id:         job.Id.String(),
+		Name:       job.Name,
+		CreatedAt:  job.CreatedAt,
+		CreatedBy:  job.CreatedBy,
+		ModifiedAt: job.ModifiedAt,
+		ModifiedBy: job.ModifiedBy,
+		SrcUrl:     job.SrcUrl,
+		Status:     string(job.Status),
+		ErrorMsg:   job.ErrorMsg,
+		TechInfo:   job.TechInfo,
+	}
 }

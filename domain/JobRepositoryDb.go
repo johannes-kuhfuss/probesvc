@@ -55,7 +55,7 @@ func (csdb JobRepositoryDb) FindById(id string) (*Job, api_error.ApiErr) {
 	err := csdb.dbclient.Get(&job, findByIdSql, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, api_error.NewNotFoundError(fmt.Sprintf("customer with id %v not found", id))
+			return nil, api_error.NewNotFoundError(fmt.Sprintf("Job with id %v not found", id))
 		} else {
 			logger.Error("Error while scanning job from DB", err)
 			return nil, api_error.NewInternalServerError("Unexpected database error", nil)

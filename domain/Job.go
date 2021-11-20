@@ -22,22 +22,22 @@ const (
 )
 
 type Job struct {
-	Id         ksuid.KSUID
-	Name       string
-	CreatedAt  time.Time
-	CreatedBy  string
-	ModifiedAt time.Time
-	ModifiedBy string
-	SrcUrl     string
-	Status     JobStatus
-	ErrorMsg   string
-	TechInfo   string
+	Id         ksuid.KSUID `db:"job_id"`
+	Name       string      `db:"name"`
+	CreatedAt  time.Time   `db:"created_at"`
+	CreatedBy  string      `db:"created_by"`
+	ModifiedAt time.Time   `db:"modified_at"`
+	ModifiedBy string      `db:"modified_by"`
+	SrcUrl     string      `db:"src_url"`
+	Status     JobStatus   `db:"status"`
+	ErrorMsg   string      `db:"error_msg"`
+	TechInfo   string      `db:"tech_info"`
 }
 
 type Jobs []Job
 
 type JobRepository interface {
-	FindAll() (*Jobs, api_error.ApiErr)
+	FindAll(string) (*Jobs, api_error.ApiErr)
 	FindById(string) (*Job, api_error.ApiErr)
 }
 

@@ -25,7 +25,8 @@ func getJobId(jobIdParam string) (string, api_error.ApiErr) {
 
 func (jh *JobHandlers) GetAllJobs(c *gin.Context) {
 	logger.Debug("Processing get all jobs request")
-	jobs, err := jh.Service.GetAllJobs()
+	status, _ := c.GetQuery("status")
+	jobs, err := jh.Service.GetAllJobs(status)
 	if err != nil {
 		logger.Error("Service error while getting all jobs", err)
 		c.JSON(err.StatusCode(), err)

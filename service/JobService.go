@@ -6,7 +6,7 @@ import (
 )
 
 type JobService interface {
-	GetAllJobs() (*domain.Jobs, api_error.ApiErr)
+	GetAllJobs(string) (*domain.Jobs, api_error.ApiErr)
 	GetJobById(string) (*domain.Job, api_error.ApiErr)
 }
 
@@ -18,8 +18,8 @@ func NewJobService(repository domain.JobRepository) DefaultJobService {
 	return DefaultJobService{repository}
 }
 
-func (s DefaultJobService) GetAllJobs() (*domain.Jobs, api_error.ApiErr) {
-	return s.repo.FindAll()
+func (s DefaultJobService) GetAllJobs(status string) (*domain.Jobs, api_error.ApiErr) {
+	return s.repo.FindAll(status)
 }
 
 func (s DefaultJobService) GetJobById(id string) (*domain.Job, api_error.ApiErr) {

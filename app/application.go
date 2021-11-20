@@ -1,6 +1,8 @@
 package app
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"github.com/johannes-kuhfuss/probesvc/config"
 	"github.com/johannes-kuhfuss/services_utils/logger"
@@ -23,7 +25,7 @@ func init() {
 func StartApp() {
 	logger.Info("Starting application")
 	mapUrls()
-
+	logger.Info(fmt.Sprintf("Listening on %v", config.ListenAddr))
 	if err := router.Run(config.ListenAddr); err != nil {
 		logger.Error("Error while starting router", err)
 		panic(err)

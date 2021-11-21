@@ -69,8 +69,8 @@ func (jh *JobHandlers) CreateNewJob(c *gin.Context) {
 		c.JSON(apiErr.StatusCode(), apiErr)
 		return
 	}
-	//newJobReq.Name = policy.Sanitize(newJobReq.Name)
-	//newJobReq.SrcUrl = policy.Sanitize(newJobReq.SrcUrl)
+	newJobReq.Name = policy.Sanitize(newJobReq.Name)
+	newJobReq.SrcUrl = policy.Sanitize(newJobReq.SrcUrl)
 	result, err := jh.Service.CreateJob(newJobReq)
 	if err != nil {
 		logger.Error("Service error while creating job", err)

@@ -7,6 +7,7 @@ import (
 	"github.com/johannes-kuhfuss/probesvc/service"
 	"github.com/johannes-kuhfuss/services_utils/api_error"
 	"github.com/johannes-kuhfuss/services_utils/logger"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/segmentio/ksuid"
 )
 
@@ -14,7 +15,16 @@ type JobHandlers struct {
 	Service service.JobService
 }
 
+var (
+	policy *bluemonday.Policy
+)
+
+func init() {
+	policy = bluemonday.UGCPolicy()
+}
+
 func getJobId(jobIdParam string) (string, api_error.ApiErr) {
+	jobIdParam = policy.Sanitize(jobIdParam)
 	jobId, err := ksuid.Parse(jobIdParam)
 	if err != nil {
 		logger.Error("User Id should be a ksuid", err)
@@ -26,6 +36,7 @@ func getJobId(jobIdParam string) (string, api_error.ApiErr) {
 func (jh *JobHandlers) GetAllJobs(c *gin.Context) {
 	logger.Debug("Processing get all jobs request")
 	status, _ := c.GetQuery("status")
+	status = policy.Sanitize(status)
 	jobs, err := jh.Service.GetAllJobs(status)
 	if err != nil {
 		logger.Error("Service error while getting all jobs", err)

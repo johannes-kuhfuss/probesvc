@@ -35,10 +35,8 @@ type Job struct {
 	TechInfo   string      `db:"tech_info"`
 }
 
-type Jobs []Job
-
 type JobRepository interface {
-	FindAll(string) (*Jobs, api_error.ApiErr)
+	FindAll(string) (*[]Job, api_error.ApiErr)
 	FindById(string) (*Job, api_error.ApiErr)
 }
 

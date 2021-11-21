@@ -28,9 +28,9 @@ func NewJobRepositoryDb() JobRepositoryDb {
 	return JobRepositoryDb{dbclient: dbclient}
 }
 
-func (csdb JobRepositoryDb) FindAll(status string) (*Jobs, api_error.ApiErr) {
+func (csdb JobRepositoryDb) FindAll(status string) (*[]Job, api_error.ApiErr) {
 	var err error
-	jobs := make(Jobs, 0)
+	jobs := make([]Job, 0)
 	if strings.TrimSpace(status) == "" {
 		findAllSql := "SELECT * FROM jobList"
 		err = csdb.dbclient.Select(&jobs, findAllSql)

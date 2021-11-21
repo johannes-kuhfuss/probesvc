@@ -38,6 +38,7 @@ type Job struct {
 type JobRepository interface {
 	FindAll(string) (*[]Job, api_error.ApiErr)
 	FindById(string) (*Job, api_error.ApiErr)
+	Create(Job) api_error.ApiErr
 }
 
 func createJobName(name string) string {

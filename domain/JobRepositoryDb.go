@@ -4,9 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
-	"time"
 
-	"github.com/johannes-kuhfuss/probesvc/config"
 	"github.com/johannes-kuhfuss/services_utils/api_error"
 	"github.com/johannes-kuhfuss/services_utils/logger"
 
@@ -15,19 +13,11 @@ import (
 )
 
 type JobRepositoryDb struct {
-	dbclient *sqlx.DB
+	client *sqlx.DB
 }
 
-func NewJobRepositoryDb() JobRepositoryDb {
-	dataSource := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", config.DbUser, config.DbPasswd, config.DbAddr, config.DbPort, config.DbName)
-	dbclient, err := sqlx.Open("mysql", dataSource)
-	if err != nil {
-		panic(err)
-	}
-	dbclient.SetConnMaxLifetime(time.Minute * 3)
-	dbclient.SetMaxOpenConns(10)
-	dbclient.SetMaxIdleConns(10)
-	return JobRepositoryDb{dbclient: dbclient}
+func NewJobRepositoryDb(dbClient *sqlx.DB) JobRepositoryDb {
+	return JobRepositoryDb{dbClient}
 }
 
 func (csdb JobRepositoryDb) FindAll(status string) (*[]Job, api_error.ApiErr) {
@@ -35,10 +25,10 @@ func (csdb JobRepositoryDb) FindAll(status string) (*[]Job, api_error.ApiErr) {
 	jobs := make([]Job, 0)
 	if strings.TrimSpace(status) == "" {
 		findAllSql := "SELECT * FROM jobList"
-		err = csdb.dbclient.Select(&jobs, findAllSql)
+		err = csdb.client.Select(&jobs, findAllSql)
 	} else {
 		findAllSql := "SELECT * FROM jobList WHERE status = ?"
-		err = csdb.dbclient.Select(&jobs, findAllSql, status)
+		err = csdb.client.Select(&jobs, findAllSql, status)
 	}
 	if err != nil {
 		logger.Error("Error while querying job list from DB", err)
@@ -54,7 +44,7 @@ func (csdb JobRepositoryDb) FindAll(status string) (*[]Job, api_error.ApiErr) {
 func (csdb JobRepositoryDb) FindById(id string) (*Job, api_error.ApiErr) {
 	var job Job
 	findByIdSql := "SELECT * FROM jobList WHERE job_id = ?"
-	err := csdb.dbclient.Get(&job, findByIdSql, id)
+	err := csdb.client.Get(&job, findByIdSql, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, api_error.NewNotFoundError(fmt.Sprintf("Job with id %v not found", id))
@@ -64,4 +54,14 @@ func (csdb JobRepositoryDb) FindById(id string) (*Job, api_error.ApiErr) {
 		}
 	}
 	return &job, nil
+}
+
+func (csdb JobRepositoryDb) Create(job Job) api_error.ApiErr {
+	insertSql := "INSERT INTO jobs (job_id, name, created_at, created_by, modified_at, modified_by, src_url, status, error_msg, tech_info) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+	_, err := csdb.client.Exec(insertSql, job.Id, job.Name, job.CreatedAt, job.CreatedBy, job.ModifiedAt, job.ModifiedBy, job.SrcUrl, job.Status, job.ErrorMsg, job.TechInfo)
+	if err != nil {
+		logger.Error("Error while inserting job into DB", err)
+		return api_error.NewInternalServerError("Unexpected database error", nil)
+	}
+	return nil
 }

@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/johannes-kuhfuss/probesvc/config"
 	"github.com/johannes-kuhfuss/services_utils/api_error"
 	"github.com/johannes-kuhfuss/services_utils/logger"
 
@@ -18,7 +19,8 @@ type JobRepositoryDb struct {
 }
 
 func NewJobRepositoryDb() JobRepositoryDb {
-	dbclient, err := sqlx.Open("mysql", "root:Admin000@tcp(192.168.255.128:3306)/jobs?parseTime=true")
+	dataSource := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", config.DbUser, config.DbPasswd, config.DbAddr, config.DbPort, config.DbName)
+	dbclient, err := sqlx.Open("mysql", dataSource)
 	if err != nil {
 		panic(err)
 	}

@@ -14,7 +14,7 @@ var (
 
 func init() {
 	logger.Debug("Initializing router")
-	gin.SetMode(config.GinMode())
+	gin.SetMode(config.GinMode)
 	gin.DefaultWriter = logger.GetLogger()
 	router = gin.New()
 	router.Use(gin.Logger())
@@ -22,14 +22,18 @@ func init() {
 	logger.Debug("Done initializing router")
 }
 
-func StartApp() {
-	logger.Info("Starting application")
-	mapUrls()
-	logger.Info(fmt.Sprintf("Listening on %v", config.ListenAddr))
-	if err := router.Run(config.ListenAddr); err != nil {
+func startRouter() {
+	listenAddr := fmt.Sprintf("%s:%s", config.ServerAddr, config.ServerPort)
+	logger.Info(fmt.Sprintf("Listening on %v", listenAddr))
+	if err := router.Run(listenAddr); err != nil {
 		logger.Error("Error while starting router", err)
 		panic(err)
 	}
+}
 
+func StartApp() {
+	logger.Info("Starting application")
+	mapUrls()
+	startRouter()
 	logger.Info("Application ended")
 }

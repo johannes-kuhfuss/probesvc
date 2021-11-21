@@ -9,6 +9,7 @@ import (
 type JobService interface {
 	GetAllJobs(string) (*[]dto.JobResponse, api_error.ApiErr)
 	GetJobById(string) (*dto.JobResponse, api_error.ApiErr)
+	CreateJob(dto.NewJobRequest) (*dto.JobResponse, api_error.ApiErr)
 }
 
 type DefaultJobService struct {
@@ -37,5 +38,18 @@ func (s DefaultJobService) GetJobById(id string) (*dto.JobResponse, api_error.Ap
 		return nil, err
 	}
 	response := job.ToDto()
+	return &response, nil
+}
+
+func (s DefaultJobService) CreateJob(jobreq dto.NewJobRequest) (*dto.JobResponse, api_error.ApiErr) {
+	newJob, err := domain.NewJob(jobreq.Name, jobreq.SrcUrl)
+	if err != nil {
+		return nil, err
+	}
+	err = s.repo.Create(*newJob)
+	if err != nil {
+		return nil, err
+	}
+	response := newJob.ToDto()
 	return &response, nil
 }

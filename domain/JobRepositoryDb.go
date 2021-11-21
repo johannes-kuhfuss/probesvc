@@ -57,7 +57,8 @@ func (csdb JobRepositoryDb) FindById(id string) (*Job, api_error.ApiErr) {
 }
 
 func (csdb JobRepositoryDb) Create(job Job) api_error.ApiErr {
-	insertSql := "INSERT INTO jobs (job_id, name, created_at, created_by, modified_at, modified_by, src_url, status, error_msg, tech_info) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+
+	insertSql := "INSERT INTO jobList (job_id, name, created_at, created_by, modified_at, modified_by, src_url, status, error_msg, tech_info) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 	_, err := csdb.client.Exec(insertSql, job.Id, job.Name, job.CreatedAt, job.CreatedBy, job.ModifiedAt, job.ModifiedBy, job.SrcUrl, job.Status, job.ErrorMsg, job.TechInfo)
 	if err != nil {
 		logger.Error("Error while inserting job into DB", err)

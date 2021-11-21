@@ -62,7 +62,7 @@ func NewJob(name string, srcurl string) (*Job, api_error.ApiErr) {
 		Name:       createJobName(name),
 		CreatedAt:  date.GetNowUtc(),
 		CreatedBy:  "",
-		ModifiedAt: time.Time{},
+		ModifiedAt: date.GetNowUtc(),
 		ModifiedBy: "",
 		SrcUrl:     srcurl,
 		Status:     JobStatusCreated,

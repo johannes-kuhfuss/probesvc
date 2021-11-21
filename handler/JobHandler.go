@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/johannes-kuhfuss/probesvc/dto"
 	"github.com/johannes-kuhfuss/probesvc/service"
 	"github.com/johannes-kuhfuss/services_utils/api_error"
 	"github.com/johannes-kuhfuss/services_utils/logger"
@@ -34,7 +35,6 @@ func getJobId(jobIdParam string) (string, api_error.ApiErr) {
 }
 
 func (jh *JobHandlers) GetAllJobs(c *gin.Context) {
-	logger.Debug("Processing get all jobs request")
 	status, _ := c.GetQuery("status")
 	status = policy.Sanitize(status)
 	jobs, err := jh.Service.GetAllJobs(status)
@@ -44,11 +44,9 @@ func (jh *JobHandlers) GetAllJobs(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, jobs)
-	logger.Debug("Done processing get all jobs request")
 }
 
 func (jh *JobHandlers) GetJobById(c *gin.Context) {
-	logger.Debug("Processing get job by id request")
 	jobId, err := getJobId(c.Param("job_id"))
 	if err != nil {
 		c.JSON(err.StatusCode(), err)
@@ -61,5 +59,23 @@ func (jh *JobHandlers) GetJobById(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, job)
-	logger.Debug("Done processing get job by id request")
+}
+
+func (jh *JobHandlers) CreateNewJob(c *gin.Context) {
+	var newJobReq dto.NewJobRequest
+	if err := c.ShouldBindJSON(&newJobReq); err != nil {
+		logger.Error("invalid JSON body in create job request", err)
+		apiErr := api_error.NewBadRequestError("invalid json body")
+		c.JSON(apiErr.StatusCode(), apiErr)
+		return
+	}
+	//newJobReq.Name = policy.Sanitize(newJobReq.Name)
+	//newJobReq.SrcUrl = policy.Sanitize(newJobReq.SrcUrl)
+	result, err := jh.Service.CreateJob(newJobReq)
+	if err != nil {
+		logger.Error("Service error while creating job", err)
+		c.JSON(err.StatusCode(), err)
+		return
+	}
+	c.JSON(http.StatusCreated, result)
 }

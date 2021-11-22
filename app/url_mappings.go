@@ -5,4 +5,5 @@ func mapUrls() {
 	router.GET("jobs/:job_id", jobHandler.GetJobById)
 	router.POST("/jobs", jobHandler.CreateNewJob)
 	router.DELETE("jobs/:job_id", jobHandler.DeleteJobById)
+	router.GET("/jobs/next", jobHandler.GetNextJob)
 }

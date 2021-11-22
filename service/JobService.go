@@ -13,6 +13,7 @@ type JobService interface {
 	GetJobById(string) (*dto.JobResponse, api_error.ApiErr)
 	CreateJob(dto.NewJobRequest) (*dto.JobResponse, api_error.ApiErr)
 	DeleteJobById(string) api_error.ApiErr
+	GetNextJob() (*dto.JobResponse, api_error.ApiErr)
 }
 
 type DefaultJobService struct {
@@ -67,4 +68,13 @@ func (s DefaultJobService) DeleteJobById(id string) api_error.ApiErr {
 		return err
 	}
 	return nil
+}
+
+func (s DefaultJobService) GetNextJob() (*dto.JobResponse, api_error.ApiErr) {
+	job, err := s.repo.GetNextJob()
+	if err != nil {
+		return nil, err
+	}
+	response := job.ToDto()
+	return &response, nil
 }

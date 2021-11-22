@@ -94,3 +94,13 @@ func (jh JobHandlers) DeleteJobById(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, nil)
 }
+
+func (jh JobHandlers) GetNextJob(c *gin.Context) {
+	result, err := jh.Service.GetNextJob()
+	if err != nil {
+		logger.Error("Service error while getting next job", err)
+		c.JSON(err.StatusCode(), err)
+		return
+	}
+	c.JSON(http.StatusOK, result)
+}

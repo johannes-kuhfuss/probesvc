@@ -76,3 +76,18 @@ func (csdb JobRepositoryDb) DeleteById(id string) api_error.ApiErr {
 	}
 	return nil
 }
+
+func (csdb JobRepositoryDb) GetNextJob() (*Job, api_error.ApiErr) {
+	var job Job
+	findNextSql := "SELECT * FROM jobList WHERE status = 'created' ORDER BY created_at LIMIT 1"
+	err := csdb.client.Get(&job, findNextSql)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, api_error.NewNotFoundError("No next job found")
+		} else {
+			logger.Error("Error while getting job from DB", err)
+			return nil, api_error.NewInternalServerError("Unexpected database error", nil)
+		}
+	}
+	return &job, nil
+}

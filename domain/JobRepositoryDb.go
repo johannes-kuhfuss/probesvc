@@ -66,3 +66,13 @@ func (csdb JobRepositoryDb) Create(job Job) api_error.ApiErr {
 	}
 	return nil
 }
+
+func (csdb JobRepositoryDb) DeleteById(id string) api_error.ApiErr {
+	deleteByIdSql := "DELETE FROM jobList WHERE job_id = ?"
+	_, err := csdb.client.Exec(deleteByIdSql, id)
+	if err != nil {
+		logger.Error("Error while deleting job from DB", err)
+		return api_error.NewInternalServerError("Unexpected database error", nil)
+	}
+	return nil
+}

@@ -1,6 +1,8 @@
 package service
 
 import (
+	"fmt"
+
 	"github.com/johannes-kuhfuss/probesvc/domain"
 	"github.com/johannes-kuhfuss/probesvc/dto"
 	"github.com/johannes-kuhfuss/services_utils/api_error"
@@ -10,6 +12,7 @@ type JobService interface {
 	GetAllJobs(string) (*[]dto.JobResponse, api_error.ApiErr)
 	GetJobById(string) (*dto.JobResponse, api_error.ApiErr)
 	CreateJob(dto.NewJobRequest) (*dto.JobResponse, api_error.ApiErr)
+	DeleteJobById(string) api_error.ApiErr
 }
 
 type DefaultJobService struct {
@@ -52,4 +55,16 @@ func (s DefaultJobService) CreateJob(jobreq dto.NewJobRequest) (*dto.JobResponse
 	}
 	response := newJob.ToDto()
 	return &response, nil
+}
+
+func (s DefaultJobService) DeleteJobById(id string) api_error.ApiErr {
+	_, err := s.GetJobById(id)
+	if err != nil {
+		return api_error.NewNotFoundError(fmt.Sprintf("Job with id %v does not exist", id))
+	}
+	err = s.repo.DeleteById(id)
+	if err != nil {
+		return err
+	}
+	return nil
 }

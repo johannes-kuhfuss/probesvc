@@ -79,3 +79,18 @@ func (jh *JobHandlers) CreateNewJob(c *gin.Context) {
 	}
 	c.JSON(http.StatusCreated, result)
 }
+
+func (jh JobHandlers) DeleteJobById(c *gin.Context) {
+	jobId, err := getJobId(c.Param("job_id"))
+	if err != nil {
+		c.JSON(err.StatusCode(), err)
+		return
+	}
+	err = jh.Service.DeleteJobById(jobId)
+	if err != nil {
+		logger.Error("Service error while deleting job by id", err)
+		c.JSON(err.StatusCode(), err)
+		return
+	}
+	c.JSON(http.StatusOK, nil)
+}

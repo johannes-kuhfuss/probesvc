@@ -1,12 +1,17 @@
 package config
 
 import (
+	"errors"
 	"os"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/johannes-kuhfuss/services_utils/logger"
 	"github.com/joho/godotenv"
+)
+
+const (
+	EnvFile = ".env"
 )
 
 var (
@@ -20,23 +25,29 @@ var (
 	DbName     string
 )
 
-func init() {
+func InitConfig(file string) error {
 	logger.Info("Initalizing configuration")
-	loadConfig(".env")
+	loadConfig(file)
 	configGin()
 	configServer()
-	configDb()
+	err := configDb()
+	if err != nil {
+		return err
+	}
 	logger.Info("Done initalizing configuration")
+	return nil
 }
 
-func loadConfig(s string) {
-	err := godotenv.Load(".env")
+func loadConfig(file string) error {
+	err := godotenv.Load(file)
 	if err != nil {
 		logger.Error("Could not open env file", err)
+		return err
 	}
+	return nil
 }
 
-func configDb() {
+func configDb() error {
 	DbUser = os.Getenv("DB_USER")
 	DbPasswd = os.Getenv("DB_PASSWD")
 	DbAddr = os.Getenv("DB_ADDR")
@@ -48,14 +59,17 @@ func configDb() {
 		strings.TrimSpace(DbPort) == "" ||
 		strings.TrimSpace(DbName) == "" {
 		logger.Error("DB environment not defined - exiting app", nil)
-		panic("DB environment not defined")
+		return errors.New("DB environment not defined")
 	}
+	return nil
 }
 
 func configGin() {
 	ginMode, ok := os.LookupEnv("GIN_MODE")
 	if !ok || (ginMode != gin.ReleaseMode && ginMode != gin.DebugMode && ginMode != gin.TestMode) {
 		GinMode = "release"
+	} else {
+		GinMode = ginMode
 	}
 }
 

@@ -56,6 +56,10 @@ func startRouter() {
 
 func StartApp() {
 	logger.Info("Starting application")
+	err := config.InitConfig(config.EnvFile)
+	if err != nil {
+		panic("Error while configuring the application")
+	}
 	initRouter()
 	wireApp()
 	mapUrls()

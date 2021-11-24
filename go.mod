@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/gin-gonic/gin v1.7.4
+	github.com/golang/mock v1.6.0
 	github.com/johannes-kuhfuss/services_utils v1.0.4
 	github.com/segmentio/ksuid v1.0.4
 	github.com/stretchr/testify v1.7.0
@@ -11,7 +12,6 @@ require (
 
 require (
 	github.com/aymerick/douceur v0.2.0 // indirect
-	github.com/golang/mock v1.6.0 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
 	golang.org/x/net v0.0.0-20210614182718-04defd469f4e // indirect
 )

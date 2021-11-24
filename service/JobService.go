@@ -8,6 +8,7 @@ import (
 	"github.com/johannes-kuhfuss/services_utils/api_error"
 )
 
+//go:generate mockgen -destination=../mocks/service/mockJobService.go -package=service github.com/johannes-kuhfuss/probesvc/service JobService
 type JobService interface {
 	GetAllJobs(string) (*[]dto.JobResponse, api_error.ApiErr)
 	GetJobById(string) (*dto.JobResponse, api_error.ApiErr)

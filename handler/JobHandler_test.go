@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/johannes-kuhfuss/probesvc/dto"
 	"github.com/johannes-kuhfuss/probesvc/mocks/service"
 	"github.com/johannes-kuhfuss/services_utils/api_error"
+	"github.com/johannes-kuhfuss/services_utils/date"
 	"github.com/segmentio/ksuid"
 	"github.com/stretchr/testify/assert"
 )
@@ -142,7 +144,7 @@ func Test_GetJobById_Returns_NoError(t *testing.T) {
 		TechInfo:   "",
 	}
 	bodyJson, _ := json.Marshal(newJob)
-	mockService.EXPECT().GetJobById(gomock.Eq(id.String())).Return(&newJob, nil)
+	mockService.EXPECT().GetJobById(id.String()).Return(&newJob, nil)
 	router.GET("/jobs/:job_id", jh.GetJobById)
 	request, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/jobs/%v", id), nil)
 
@@ -164,4 +166,55 @@ func Test_CreateNewJob_Returns_InvalidJsonError(t *testing.T) {
 
 	assert.EqualValues(t, http.StatusBadRequest, recorder.Code)
 	assert.EqualValues(t, errorJson, recorder.Body.String())
+}
+
+func Test_CreateNewJob_Returns_ServiceError(t *testing.T) {
+	teardown := setupTest(t)
+	defer teardown()
+	apiError := api_error.NewInternalServerError("database error", nil)
+	errorJson, _ := json.Marshal(apiError)
+	jobReq := dto.NewJobRequest{
+		Name:   "my new job",
+		SrcUrl: "http://server/path/file.ext",
+	}
+	jobReqJson, _ := json.Marshal(jobReq)
+	mockService.EXPECT().CreateJob(jobReq).Return(nil, apiError)
+	router.POST("/jobs", jh.CreateNewJob)
+	request, _ := http.NewRequest(http.MethodPost, "/jobs", strings.NewReader(string(jobReqJson)))
+
+	router.ServeHTTP(recorder, request)
+
+	assert.EqualValues(t, http.StatusInternalServerError, recorder.Code)
+	assert.EqualValues(t, errorJson, recorder.Body.String())
+}
+
+func Test_CreateNewJob_Returns_NoError(t *testing.T) {
+	teardown := setupTest(t)
+	defer teardown()
+	jobReq := dto.NewJobRequest{
+		Name:   "my new job",
+		SrcUrl: "http://server/path/file.ext",
+	}
+	jobReqJson, _ := json.Marshal(jobReq)
+	jobResp := dto.JobResponse{
+		Id:         ksuid.New().String(),
+		Name:       jobReq.Name,
+		CreatedAt:  date.GetNowUtc(),
+		CreatedBy:  "",
+		ModifiedAt: date.GetNowUtc(),
+		ModifiedBy: "",
+		SrcUrl:     jobReq.SrcUrl,
+		Status:     "created",
+		ErrorMsg:   "",
+		TechInfo:   "",
+	}
+	bodyJson, _ := json.Marshal(jobResp)
+	mockService.EXPECT().CreateJob(jobReq).Return(&jobResp, nil)
+	router.POST("/jobs", jh.CreateNewJob)
+	request, _ := http.NewRequest(http.MethodPost, "/jobs", strings.NewReader(string(jobReqJson)))
+
+	router.ServeHTTP(recorder, request)
+
+	assert.EqualValues(t, http.StatusCreated, recorder.Code)
+	assert.EqualValues(t, bodyJson, recorder.Body.String())
 }

@@ -95,21 +95,19 @@ func Test_GetAllJobs_Returns_Error(t *testing.T) {
 	assert.EqualValues(t, errorJson, recorder.Body.String())
 }
 
-/*
 func Test_GetJobById_Returns_InvalidIdError(t *testing.T) {
 	teardown := setupTest(t)
 	defer teardown()
 	apiError := api_error.NewBadRequestError("User id should be a ksuid")
 	errorJson, _ := json.Marshal(apiError)
 	router.GET("/jobs/:job_id", jh.GetJobById)
-	request, _ := http.NewRequest(http.MethodGet, "/jobs/:jod_id", nil)
+	request, _ := http.NewRequest(http.MethodGet, "/jobs/not_a_ksuid", nil)
 
 	router.ServeHTTP(recorder, request)
 
 	assert.EqualValues(t, http.StatusBadRequest, recorder.Code)
 	assert.EqualValues(t, errorJson, recorder.Body.String())
 }
-*/
 
 func Test_GetJobById_Returns_NotFoundError(t *testing.T) {
 	teardown := setupTest(t)

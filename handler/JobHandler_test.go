@@ -30,7 +30,7 @@ func Test_getJobId_NonKsuid_Returns_BadRequestError(t *testing.T) {
 	jobId, err := getJobId(testParam)
 	assert.NotNil(t, err)
 	assert.EqualValues(t, "", jobId)
-	assert.EqualValues(t, "user id should be a ksuid", err.Message())
+	assert.EqualValues(t, "User id should be a ksuid", err.Message())
 	assert.EqualValues(t, http.StatusBadRequest, err.StatusCode())
 }
 

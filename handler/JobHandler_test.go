@@ -218,3 +218,87 @@ func Test_CreateNewJob_Returns_NoError(t *testing.T) {
 	assert.EqualValues(t, http.StatusCreated, recorder.Code)
 	assert.EqualValues(t, bodyJson, recorder.Body.String())
 }
+
+func Test_DeleteJobById_Returns_InvalidIdError(t *testing.T) {
+	teardown := setupTest(t)
+	defer teardown()
+	apiError := api_error.NewBadRequestError("User id should be a ksuid")
+	errorJson, _ := json.Marshal(apiError)
+	router.DELETE("/jobs/:job_id", jh.DeleteJobById)
+	request, _ := http.NewRequest(http.MethodDelete, "/jobs/not_a_ksuid", nil)
+
+	router.ServeHTTP(recorder, request)
+
+	assert.EqualValues(t, http.StatusBadRequest, recorder.Code)
+	assert.EqualValues(t, errorJson, recorder.Body.String())
+}
+
+func Test_DeleteJobById_Returns_NotFoundError(t *testing.T) {
+	teardown := setupTest(t)
+	defer teardown()
+	id := ksuid.New()
+	apiError := api_error.NewNotFoundError(fmt.Sprintf("job with id %v not found", id))
+	errorJson, _ := json.Marshal(apiError)
+	mockService.EXPECT().DeleteJobById(id.String()).Return(apiError)
+	router.DELETE("/jobs/:job_id", jh.DeleteJobById)
+	request, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/jobs/%v", id), nil)
+
+	router.ServeHTTP(recorder, request)
+
+	assert.EqualValues(t, http.StatusNotFound, recorder.Code)
+	assert.EqualValues(t, errorJson, recorder.Body.String())
+}
+
+func Test_DeleteJobById_Returns_NoError(t *testing.T) {
+	teardown := setupTest(t)
+	defer teardown()
+	id := ksuid.New()
+	mockService.EXPECT().DeleteJobById(id.String()).Return(nil)
+	router.DELETE("/jobs/:job_id", jh.DeleteJobById)
+	request, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/jobs/%v", id), nil)
+
+	router.ServeHTTP(recorder, request)
+
+	assert.EqualValues(t, http.StatusOK, recorder.Code)
+}
+
+func Test_GetNextJob_Returns_NotFoundError(t *testing.T) {
+	teardown := setupTest(t)
+	defer teardown()
+	apiError := api_error.NewNotFoundError("No next job found")
+	errorJson, _ := json.Marshal(apiError)
+	mockService.EXPECT().GetNextJob().Return(nil, apiError)
+	router.GET("/jobs/next", jh.GetNextJob)
+	request, _ := http.NewRequest(http.MethodGet, "/jobs/next", nil)
+
+	router.ServeHTTP(recorder, request)
+
+	assert.EqualValues(t, http.StatusNotFound, recorder.Code)
+	assert.EqualValues(t, errorJson, recorder.Body.String())
+}
+
+func Test_GetNextJob_Returns_NoError(t *testing.T) {
+	teardown := setupTest(t)
+	defer teardown()
+	jobResp := dto.JobResponse{
+		Id:         ksuid.New().String(),
+		Name:       "job 1",
+		CreatedAt:  date.GetNowUtc(),
+		CreatedBy:  "",
+		ModifiedAt: date.GetNowUtc(),
+		ModifiedBy: "",
+		SrcUrl:     "http://server/path/file.ext",
+		Status:     "created",
+		ErrorMsg:   "",
+		TechInfo:   "",
+	}
+	bodyJson, _ := json.Marshal(jobResp)
+	mockService.EXPECT().GetNextJob().Return(&jobResp, nil)
+	router.GET("/jobs/next", jh.GetNextJob)
+	request, _ := http.NewRequest(http.MethodGet, "/jobs/next", nil)
+
+	router.ServeHTTP(recorder, request)
+
+	assert.EqualValues(t, http.StatusOK, recorder.Code)
+	assert.EqualValues(t, bodyJson, recorder.Body.String())
+}

@@ -35,6 +35,7 @@ type Job struct {
 	TechInfo   string      `db:"tech_info"`
 }
 
+//go:generate mockgen -destination=../mocks/domain/mockJobRepository.go -package=domain github.com/johannes-kuhfuss/probesvc/domain JobRepository
 type JobRepository interface {
 	FindAll(string) (*[]Job, api_error.ApiErr)
 	FindById(string) (*Job, api_error.ApiErr)

@@ -29,7 +29,7 @@ func getJobId(jobIdParam string) (string, api_error.ApiErr) {
 	jobId, err := ksuid.Parse(jobIdParam)
 	if err != nil {
 		logger.Error("User Id should be a ksuid", err)
-		return "", api_error.NewBadRequestError("user id should be a ksuid")
+		return "", api_error.NewBadRequestError("User id should be a ksuid")
 	}
 	return jobId.String(), nil
 }

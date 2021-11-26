@@ -144,3 +144,74 @@ func Test_CreateJob_Returns_NoError(t *testing.T) {
 	assert.EqualValues(t, jobReq.SrcUrl, result.SrcUrl)
 	assert.EqualValues(t, "created", result.Status)
 }
+
+func Test_DeleteJobById_Returns_NotFoundError(t *testing.T) {
+	teardown := setup(t)
+	defer teardown()
+	id := ksuid.New().String()
+	apiError := api_error.NewNotFoundError(fmt.Sprintf("Job with id %v does not exist", id))
+	mockRepo.EXPECT().FindById(id).Return(nil, apiError)
+
+	err := service.DeleteJobById(id)
+
+	assert.NotNil(t, err)
+	assert.EqualValues(t, apiError.Message(), err.Message())
+	assert.EqualValues(t, http.StatusNotFound, err.StatusCode())
+}
+
+func Test_DeleteJobById_Returns_InternalServerError(t *testing.T) {
+	teardown := setup(t)
+	defer teardown()
+	newJob, _ := realdomain.NewJob("job 1", "url1")
+	id := newJob.Id.String()
+	mockRepo.EXPECT().FindById(id).Return(newJob, nil)
+	apiError := api_error.NewInternalServerError("database error", nil)
+	mockRepo.EXPECT().DeleteById(id).Return(apiError)
+
+	err := service.DeleteJobById(id)
+
+	assert.NotNil(t, err)
+	assert.EqualValues(t, apiError.Message(), err.Message())
+	assert.EqualValues(t, http.StatusInternalServerError, err.StatusCode())
+}
+
+func Test_DeleteJobById_Returns_NoError(t *testing.T) {
+	teardown := setup(t)
+	defer teardown()
+	newJob, _ := realdomain.NewJob("job 1", "url1")
+	id := newJob.Id.String()
+	mockRepo.EXPECT().FindById(id).Return(newJob, nil)
+	mockRepo.EXPECT().DeleteById(id).Return(nil)
+
+	err := service.DeleteJobById(id)
+
+	assert.Nil(t, err)
+}
+
+func Test_GetNextJob_Returns_NotFoundError(t *testing.T) {
+	teardown := setup(t)
+	defer teardown()
+	apiError := api_error.NewNotFoundError("No next job found")
+	mockRepo.EXPECT().GetNextJob().Return(nil, apiError)
+
+	job, err := service.GetNextJob()
+
+	assert.Nil(t, job)
+	assert.NotNil(t, err)
+	assert.EqualValues(t, apiError.Message(), err.Message())
+	assert.EqualValues(t, http.StatusNotFound, err.StatusCode())
+}
+
+func Test_GetNextJob_Returns_NoError(t *testing.T) {
+	teardown := setup(t)
+	defer teardown()
+	nextJob, _ := realdomain.NewJob("job 1", "url 1")
+	mockRepo.EXPECT().GetNextJob().Return(nextJob, nil)
+
+	job, err := service.GetNextJob()
+
+	assert.NotNil(t, job)
+	assert.Nil(t, err)
+	assert.EqualValues(t, nextJob.Name, job.Name)
+	assert.EqualValues(t, nextJob.SrcUrl, job.SrcUrl)
+}

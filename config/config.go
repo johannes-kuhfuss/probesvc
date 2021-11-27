@@ -1,9 +1,7 @@
 package config
 
 import (
-	"errors"
 	"os"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/johannes-kuhfuss/services_utils/logger"
@@ -18,24 +16,14 @@ var (
 	GinMode    string
 	ServerAddr string
 	ServerPort string
-	DbUser     string
-	DbPasswd   string
-	DbAddr     string
-	DbPort     string
-	DbName     string
 )
 
-func InitConfig(file string) error {
+func InitConfig(file string) {
 	logger.Info("Initalizing configuration")
 	loadConfig(file)
 	configGin()
 	configServer()
-	err := configDb()
-	if err != nil {
-		return err
-	}
 	logger.Info("Done initalizing configuration")
-	return nil
 }
 
 func loadConfig(file string) error {
@@ -43,23 +31,6 @@ func loadConfig(file string) error {
 	if err != nil {
 		logger.Error("Could not open env file", err)
 		return err
-	}
-	return nil
-}
-
-func configDb() error {
-	DbUser = os.Getenv("DB_USER")
-	DbPasswd = os.Getenv("DB_PASSWD")
-	DbAddr = os.Getenv("DB_ADDR")
-	DbPort = os.Getenv("DB_PORT")
-	DbName = os.Getenv("DB_NAME")
-	if strings.TrimSpace(DbUser) == "" ||
-		strings.TrimSpace(DbPasswd) == "" ||
-		strings.TrimSpace(DbAddr) == "" ||
-		strings.TrimSpace(DbPort) == "" ||
-		strings.TrimSpace(DbName) == "" {
-		logger.Error("DB environment not defined - exiting app", nil)
-		return errors.New("DB environment not defined")
 	}
 	return nil
 }

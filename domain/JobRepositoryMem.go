@@ -114,9 +114,6 @@ func (csm JobRepositoryMem) GetNextJob() (*Job, api_error.ApiErr) {
 			}
 		}
 	}
-	job, err := filterById(csm.jobList, nextJobId)
-	if err != nil {
-		return nil, err
-	}
+	job, _ := filterById(csm.jobList, nextJobId)
 	return job, nil
 }

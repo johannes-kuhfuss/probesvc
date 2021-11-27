@@ -18,12 +18,13 @@ var (
 	ServerPort string
 )
 
-func InitConfig(file string) {
+func InitConfig(file string) error {
 	logger.Info("Initalizing configuration")
-	loadConfig(file)
+	err := loadConfig(file)
 	configGin()
 	configServer()
 	logger.Info("Done initalizing configuration")
+	return err
 }
 
 func loadConfig(file string) error {

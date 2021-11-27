@@ -82,6 +82,7 @@ func Test_configGin_WithEnvVar_SetsMode(t *testing.T) {
 
 func Test_configServer_NoEnvVars_SetsDefaults(t *testing.T) {
 	configServer()
+
 	assert.EqualValues(t, "", ServerAddr)
 	assert.EqualValues(t, "8080", ServerPort)
 }
@@ -92,6 +93,23 @@ func Test_configServer_WithEnvVars_SetsValues(t *testing.T) {
 	loadConfig(testEnvFile)
 	defer unsetEnvVars()
 	configServer()
+
 	assert.EqualValues(t, "127.0.0.1", ServerAddr)
 	assert.EqualValues(t, "9999", ServerPort)
+}
+
+func Test_InitConfig_Returns_Error(t *testing.T) {
+	err := InitConfig("file-does-no-exist")
+
+	assert.NotNil(t, err)
+}
+
+func Test_InitConfig_ReturnsNoError(t *testing.T) {
+	writeTestEnv(testEnvFile)
+	defer deleteEnvFile(testEnvFile)
+	err := InitConfig(testEnvFile)
+	defer unsetEnvVars()
+
+	assert.Nil(t, err)
+	assert.EqualValues(t, "127.0.0.1", ServerAddr)
 }

@@ -40,9 +40,8 @@ func initRouter() {
 }
 
 func wireApp() {
-	dbClient = getDbClient()
-	customerRepositoryDb := domain.NewJobRepositoryDb(dbClient)
-	jobHandler = handler.JobHandlers{Service: service.NewJobService(customerRepositoryDb)}
+	customerRepo := domain.NewJobRepositoryMem()
+	jobHandler = handler.JobHandlers{Service: service.NewJobService(customerRepo)}
 }
 
 func startRouter() {

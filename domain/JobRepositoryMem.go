@@ -3,6 +3,7 @@ package domain
 import (
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/johannes-kuhfuss/services_utils/api_error"
@@ -11,14 +12,18 @@ import (
 
 type JobRepositoryMem struct {
 	jobList map[string]Job
+	mu      *sync.Mutex
 }
 
 func NewJobRepositoryMem() JobRepositoryMem {
 	jList := make(map[string]Job)
-	return JobRepositoryMem{jList}
+	m := sync.Mutex{}
+	return JobRepositoryMem{jList, &m}
 }
 
 func (csm JobRepositoryMem) FindAll(status string) (*[]Job, api_error.ApiErr) {
+	csm.mu.Lock()
+	defer csm.mu.Unlock()
 	if len(csm.jobList) == 0 {
 		return nil, api_error.NewNotFoundError("no jobs in joblist")
 	}
@@ -52,6 +57,8 @@ func filterByStatus(jList map[string]Job, status string) (*[]Job, api_error.ApiE
 }
 
 func (csm JobRepositoryMem) FindById(id string) (*Job, api_error.ApiErr) {
+	csm.mu.Lock()
+	defer csm.mu.Unlock()
 	if len(csm.jobList) == 0 {
 		return nil, api_error.NewNotFoundError("no jobs in joblist")
 	}
@@ -68,11 +75,15 @@ func filterById(jList map[string]Job, id string) (*Job, api_error.ApiErr) {
 }
 
 func (csm JobRepositoryMem) Create(job Job) api_error.ApiErr {
+	csm.mu.Lock()
+	defer csm.mu.Unlock()
 	csm.jobList[job.Id.String()] = job
 	return nil
 }
 
 func (csm JobRepositoryMem) DeleteById(id string) api_error.ApiErr {
+	csm.mu.Lock()
+	defer csm.mu.Unlock()
 	if len(csm.jobList) == 0 {
 		return api_error.NewNotFoundError("no jobs in joblist")
 	}
@@ -87,6 +98,9 @@ func (csm JobRepositoryMem) DeleteById(id string) api_error.ApiErr {
 func (csm JobRepositoryMem) GetNextJob() (*Job, api_error.ApiErr) {
 	var nextJobId string
 	var nextJobDate time.Time = date.GetNowUtc().Add(1 * time.Second)
+
+	csm.mu.Lock()
+	defer csm.mu.Unlock()
 
 	if len(csm.jobList) == 0 {
 		err := api_error.NewNotFoundError("no jobs in joblist")

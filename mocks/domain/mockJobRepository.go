@@ -93,17 +93,17 @@ func (mr *MockJobRepositoryMockRecorder) FindById(arg0 interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindById", reflect.TypeOf((*MockJobRepository)(nil).FindById), arg0)
 }
 
-// GetNextJob mocks base method.
-func (m *MockJobRepository) GetNextJob() (*domain.Job, api_error.ApiErr) {
+// GetNext mocks base method.
+func (m *MockJobRepository) GetNext() (*domain.Job, api_error.ApiErr) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetNextJob")
+	ret := m.ctrl.Call(m, "GetNext")
 	ret0, _ := ret[0].(*domain.Job)
 	ret1, _ := ret[1].(api_error.ApiErr)
 	return ret0, ret1
 }
 
-// GetNextJob indicates an expected call of GetNextJob.
-func (mr *MockJobRepositoryMockRecorder) GetNextJob() *gomock.Call {
+// GetNext indicates an expected call of GetNext.
+func (mr *MockJobRepositoryMockRecorder) GetNext() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNextJob", reflect.TypeOf((*MockJobRepository)(nil).GetNextJob))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNext", reflect.TypeOf((*MockJobRepository)(nil).GetNext))
 }

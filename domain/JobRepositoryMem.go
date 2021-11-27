@@ -95,7 +95,7 @@ func (csm JobRepositoryMem) DeleteById(id string) api_error.ApiErr {
 	return nil
 }
 
-func (csm JobRepositoryMem) GetNextJob() (*Job, api_error.ApiErr) {
+func (csm JobRepositoryMem) GetNext() (*Job, api_error.ApiErr) {
 	var nextJobId string
 	var nextJobDate time.Time = date.GetNowUtc().Add(1 * time.Second)
 

@@ -192,7 +192,7 @@ func Test_GetNextJob_Returns_NotFoundError(t *testing.T) {
 	teardown := setup(t)
 	defer teardown()
 	apiError := api_error.NewNotFoundError("No next job found")
-	mockRepo.EXPECT().GetNextJob().Return(nil, apiError)
+	mockRepo.EXPECT().GetNext().Return(nil, apiError)
 
 	job, err := service.GetNextJob()
 
@@ -206,7 +206,7 @@ func Test_GetNextJob_Returns_NoError(t *testing.T) {
 	teardown := setup(t)
 	defer teardown()
 	nextJob, _ := realdomain.NewJob("job 1", "url 1")
-	mockRepo.EXPECT().GetNextJob().Return(nextJob, nil)
+	mockRepo.EXPECT().GetNext().Return(nextJob, nil)
 
 	job, err := service.GetNextJob()
 

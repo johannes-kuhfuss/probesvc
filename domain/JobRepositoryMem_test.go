@@ -45,7 +45,7 @@ func Test_FindAll_NoJobsAfterFilter_Returns_NotFoundError(t *testing.T) {
 	assert.EqualValues(t, http.StatusNotFound, err.StatusCode())
 }
 
-func Test_FindAll_Returns_Full_NoError(t *testing.T) {
+func Test_FindAll_NoFilter_Returns_NoError(t *testing.T) {
 	teardown := setup()
 	defer teardown()
 	fillJobList()
@@ -58,7 +58,7 @@ func Test_FindAll_Returns_Full_NoError(t *testing.T) {
 	assert.EqualValues(t, 2, len(*jList))
 }
 
-func Test_FindAll_Returns_Partial_NoError(t *testing.T) {
+func Test_FindAll_WithFilter_Returns_NoError(t *testing.T) {
 	teardown := setup()
 	defer teardown()
 	fillJobList()
@@ -171,11 +171,11 @@ func Test_DeleteById_Returns_NoError(t *testing.T) {
 	assert.Equal(t, 1, len(jobRepo.jobList))
 }
 
-func Test_GetNextJob_NoJobs_Returns_NotFoundError(t *testing.T) {
+func Test_GetNext_NoJobs_Returns_NotFoundError(t *testing.T) {
 	teardown := setup()
 	defer teardown()
 
-	job, err := jobRepo.GetNextJob()
+	job, err := jobRepo.GetNext()
 
 	assert.Nil(t, job)
 	assert.NotNil(t, err)
@@ -183,12 +183,12 @@ func Test_GetNextJob_NoJobs_Returns_NotFoundError(t *testing.T) {
 	assert.EqualValues(t, http.StatusNotFound, err.StatusCode())
 }
 
-func Test_GetNextJob_Returns_NoError(t *testing.T) {
+func Test_GetNext_Returns_NoError(t *testing.T) {
 	teardown := setup()
 	defer teardown()
 	createdId := fillJobList()
 
-	job, err := jobRepo.GetNextJob()
+	job, err := jobRepo.GetNext()
 
 	assert.NotNil(t, job)
 	assert.Nil(t, err)

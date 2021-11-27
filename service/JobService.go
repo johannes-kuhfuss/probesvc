@@ -72,7 +72,7 @@ func (s DefaultJobService) DeleteJobById(id string) api_error.ApiErr {
 }
 
 func (s DefaultJobService) GetNextJob() (*dto.JobResponse, api_error.ApiErr) {
-	job, err := s.repo.GetNextJob()
+	job, err := s.repo.GetNext()
 	if err != nil {
 		return nil, err
 	}

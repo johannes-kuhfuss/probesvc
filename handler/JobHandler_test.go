@@ -154,12 +154,12 @@ func Test_GetJobById_Returns_NoError(t *testing.T) {
 	assert.EqualValues(t, bodyJson, recorder.Body.String())
 }
 
-func Test_CreateNewJob_Returns_InvalidJsonError(t *testing.T) {
+func Test_CreateJob_Returns_InvalidJsonError(t *testing.T) {
 	teardown := setupTest(t)
 	defer teardown()
 	apiError := api_error.NewBadRequestError("invalid json body")
 	errorJson, _ := json.Marshal(apiError)
-	router.POST("/jobs", jh.CreateNewJob)
+	router.POST("/jobs", jh.CreateJob)
 	request, _ := http.NewRequest(http.MethodPost, "/jobs", nil)
 
 	router.ServeHTTP(recorder, request)
@@ -168,7 +168,7 @@ func Test_CreateNewJob_Returns_InvalidJsonError(t *testing.T) {
 	assert.EqualValues(t, errorJson, recorder.Body.String())
 }
 
-func Test_CreateNewJob_Returns_ServiceError(t *testing.T) {
+func Test_CreateJob_Returns_ServiceError(t *testing.T) {
 	teardown := setupTest(t)
 	defer teardown()
 	apiError := api_error.NewInternalServerError("database error", nil)
@@ -179,7 +179,7 @@ func Test_CreateNewJob_Returns_ServiceError(t *testing.T) {
 	}
 	jobReqJson, _ := json.Marshal(jobReq)
 	mockService.EXPECT().CreateJob(jobReq).Return(nil, apiError)
-	router.POST("/jobs", jh.CreateNewJob)
+	router.POST("/jobs", jh.CreateJob)
 	request, _ := http.NewRequest(http.MethodPost, "/jobs", strings.NewReader(string(jobReqJson)))
 
 	router.ServeHTTP(recorder, request)
@@ -188,7 +188,7 @@ func Test_CreateNewJob_Returns_ServiceError(t *testing.T) {
 	assert.EqualValues(t, errorJson, recorder.Body.String())
 }
 
-func Test_CreateNewJob_Returns_NoError(t *testing.T) {
+func Test_CreateJob_Returns_NoError(t *testing.T) {
 	teardown := setupTest(t)
 	defer teardown()
 	jobReq := dto.NewJobRequest{
@@ -210,7 +210,7 @@ func Test_CreateNewJob_Returns_NoError(t *testing.T) {
 	}
 	bodyJson, _ := json.Marshal(jobResp)
 	mockService.EXPECT().CreateJob(jobReq).Return(&jobResp, nil)
-	router.POST("/jobs", jh.CreateNewJob)
+	router.POST("/jobs", jh.CreateJob)
 	request, _ := http.NewRequest(http.MethodPost, "/jobs", strings.NewReader(string(jobReqJson)))
 
 	router.ServeHTTP(recorder, request)

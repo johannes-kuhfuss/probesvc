@@ -61,7 +61,7 @@ func (jh *JobHandlers) GetJobById(c *gin.Context) {
 	c.JSON(http.StatusOK, job)
 }
 
-func (jh *JobHandlers) CreateNewJob(c *gin.Context) {
+func (jh *JobHandlers) CreateJob(c *gin.Context) {
 	var newJobReq dto.NewJobRequest
 	if err := c.ShouldBindJSON(&newJobReq); err != nil {
 		logger.Error("invalid JSON body in create job request", err)

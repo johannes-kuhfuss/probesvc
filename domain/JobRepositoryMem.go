@@ -3,33 +3,43 @@ package domain
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/johannes-kuhfuss/services_utils/api_error"
+	"github.com/johannes-kuhfuss/services_utils/date"
 )
 
 type JobRepositoryMem struct {
-	jobList *[]Job
+	jobList map[string]Job
 }
 
 func NewJobRepositoryMem() JobRepositoryMem {
-	jList := make([]Job, 0)
-	return JobRepositoryMem{&jList}
+	jList := make(map[string]Job)
+	return JobRepositoryMem{jList}
 }
 
 func (csm JobRepositoryMem) FindAll(status string) (*[]Job, api_error.ApiErr) {
-	if len(*csm.jobList) == 0 {
+	if len(csm.jobList) == 0 {
 		return nil, api_error.NewNotFoundError("no jobs in joblist")
 	}
 	if strings.TrimSpace(status) == "" {
-		return csm.jobList, nil
+		return convertMapToSlice(csm.jobList), nil
 	} else {
 		return filterByStatus(csm.jobList, status)
 	}
 }
 
-func filterByStatus(jobList *[]Job, status string) (*[]Job, api_error.ApiErr) {
+func convertMapToSlice(jList map[string]Job) *[]Job {
+	slice := make([]Job, 0)
+	for _, job := range jList {
+		slice = append(slice, job)
+	}
+	return &slice
+}
+
+func filterByStatus(jList map[string]Job, status string) (*[]Job, api_error.ApiErr) {
 	filteredByStatusList := make([]Job, 0)
-	for _, curJob := range *jobList {
+	for _, curJob := range jList {
 		if curJob.Status == JobStatus(status) {
 			filteredByStatusList = append(filteredByStatusList, curJob)
 		}
@@ -42,14 +52,14 @@ func filterByStatus(jobList *[]Job, status string) (*[]Job, api_error.ApiErr) {
 }
 
 func (csm JobRepositoryMem) FindById(id string) (*Job, api_error.ApiErr) {
-	if len(*csm.jobList) == 0 {
+	if len(csm.jobList) == 0 {
 		return nil, api_error.NewNotFoundError("no jobs in joblist")
 	}
 	return filterById(csm.jobList, id)
 }
 
-func filterById(jobList *[]Job, id string) (*Job, api_error.ApiErr) {
-	for _, curJob := range *jobList {
+func filterById(jList map[string]Job, id string) (*Job, api_error.ApiErr) {
+	for _, curJob := range jList {
 		if curJob.Id.String() == id {
 			return &curJob, nil
 		}
@@ -58,13 +68,41 @@ func filterById(jobList *[]Job, id string) (*Job, api_error.ApiErr) {
 }
 
 func (csm JobRepositoryMem) Create(job Job) api_error.ApiErr {
-	return api_error.NewBadRequestError("")
+	csm.jobList[job.Id.String()] = job
+	return nil
 }
 
 func (csm JobRepositoryMem) DeleteById(id string) api_error.ApiErr {
-	return api_error.NewBadRequestError("")
+	if len(csm.jobList) == 0 {
+		return api_error.NewNotFoundError("no jobs in joblist")
+	}
+	_, err := filterById(csm.jobList, id)
+	if err != nil {
+		return err
+	}
+	delete(csm.jobList, id)
+	return nil
 }
 
 func (csm JobRepositoryMem) GetNextJob() (*Job, api_error.ApiErr) {
-	return nil, api_error.NewBadRequestError("")
+	var nextJobId string
+	var nextJobDate time.Time = date.GetNowUtc().Add(1 * time.Second)
+
+	if len(csm.jobList) == 0 {
+		err := api_error.NewNotFoundError("no jobs in joblist")
+		return nil, err
+	}
+	for _, job := range csm.jobList {
+		if job.Status == JobStatusCreated {
+			if job.CreatedAt.Before(nextJobDate) {
+				nextJobDate = job.CreatedAt
+				nextJobId = job.Id.String()
+			}
+		}
+	}
+	job, err := filterById(csm.jobList, nextJobId)
+	if err != nil {
+		return nil, err
+	}
+	return job, nil
 }

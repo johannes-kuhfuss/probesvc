@@ -21,16 +21,16 @@ func NewJobRepositoryMem() JobRepositoryMem {
 	return JobRepositoryMem{jList, &m}
 }
 
-func (csm JobRepositoryMem) FindAll(status string) (*[]Job, api_error.ApiErr) {
-	csm.mu.Lock()
-	defer csm.mu.Unlock()
-	if len(csm.jobList) == 0 {
+func (jrm JobRepositoryMem) FindAll(status string) (*[]Job, api_error.ApiErr) {
+	jrm.mu.Lock()
+	defer jrm.mu.Unlock()
+	if len(jrm.jobList) == 0 {
 		return nil, api_error.NewNotFoundError("no jobs in joblist")
 	}
 	if strings.TrimSpace(status) == "" {
-		return convertMapToSlice(csm.jobList), nil
+		return convertMapToSlice(jrm.jobList), nil
 	} else {
-		return filterByStatus(csm.jobList, status)
+		return filterByStatus(jrm.jobList, status)
 	}
 }
 

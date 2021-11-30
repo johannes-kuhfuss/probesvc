@@ -118,6 +118,8 @@ func fillJobList() (id string) {
 	jList := make(map[string]Job)
 	jList[id1] = *job1
 	jList[id2] = *job2
+	jobRepo.mu.Lock()
+	defer jobRepo.mu.Unlock()
 	jobRepo.jobList = jList
 	return id1
 }

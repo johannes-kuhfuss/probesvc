@@ -1,7 +1,9 @@
 package config
 
 import (
+	"errors"
 	"os"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/johannes-kuhfuss/services_utils/logger"
@@ -13,14 +15,18 @@ const (
 )
 
 var (
-	GinMode    string
-	ServerAddr string
-	ServerPort string
+	GinMode            string
+	ServerAddr         string
+	ServerPort         string
+	StorageAccountName string
+	StorageAccountKey  string
+	StorageBaseUrl     string
 )
 
 func InitConfig(file string) error {
 	logger.Info("Initalizing configuration")
-	err := loadConfig(file)
+	loadConfig(file)
+	err := configStorage()
 	configGin()
 	configServer()
 	logger.Info("Done initalizing configuration")
@@ -32,6 +38,26 @@ func loadConfig(file string) error {
 	if err != nil {
 		logger.Error("Could not open env file", err)
 		return err
+	}
+	return nil
+}
+
+func configStorage() error {
+	var ok bool
+	StorageAccountName, ok = os.LookupEnv("STORAGE_ACCOUNT_NAME")
+	if !ok || strings.TrimSpace(StorageAccountName) == "" {
+		logger.Error("environment variable \"STORAGE_ACCOUNT_NAME\" not set. Cannot start", nil)
+		return errors.New("environment variable \"STORAGE_ACCOUNT_NAME\" not set. Cannot start")
+	}
+	StorageAccountKey, ok = os.LookupEnv("STORAGE_ACCOUNT_KEY")
+	if !ok || strings.TrimSpace(StorageAccountKey) == "" {
+		logger.Error("environment variable \"STORAGE_ACCOUNT_KEY\" not set. Cannot start", nil)
+		return errors.New("environment variable \"STORAGE_ACCOUNT_KEY\" not set. Cannot start")
+	}
+	StorageBaseUrl, ok = os.LookupEnv("STORAGE_BASE_URL")
+	if !ok || strings.TrimSpace(StorageBaseUrl) == "" {
+		logger.Error("environment variable \"STORAGE_BASE_URL\" not set. Cannot start", nil)
+		return errors.New("environment variable \"STORAGE_BASE_URL\" not set. Cannot start")
 	}
 	return nil
 }

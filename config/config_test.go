@@ -30,6 +30,12 @@ func writeTestEnv(fileName string) {
 	checkErr(err)
 	_, err = w.WriteString("SERVER_PORT=\"9999\"\n")
 	checkErr(err)
+	_, err = w.WriteString("STORAGE_ACCOUNT_NAME=\"storage_account\"\n")
+	checkErr(err)
+	_, err = w.WriteString("STORAGE_ACCOUNT_KEY=\"storage_key\"\n")
+	checkErr(err)
+	_, err = w.WriteString("STORAGE_BASE_URL=\"storage_url\"\n")
+	checkErr(err)
 	w.Flush()
 }
 
@@ -42,11 +48,15 @@ func unsetEnvVars() {
 	os.Unsetenv("GIN_MODE")
 	os.Unsetenv("SERVER_ADDR")
 	os.Unsetenv("SERVER_PORT")
+	os.Unsetenv("STORAGE_ACCOUNT_NAME")
+	os.Unsetenv("STORAGE_ACCOUNT_KEY")
+	os.Unsetenv("STORAGE_BASE_URL")
 }
 
 func Test_loadConfig_NoEnvFile_Returns_Error(t *testing.T) {
 	err := loadConfig("file_does_not_exist.txt")
 	assert.NotNil(t, err)
+	fmt.Printf("error: %v", err)
 	assert.EqualValues(t, "open file_does_not_exist.txt: The system cannot find the file specified.", err.Error())
 }
 
@@ -55,9 +65,46 @@ func Test_loadConfig_WithEnvFile_Returns_NoError(t *testing.T) {
 	defer deleteEnvFile(testEnvFile)
 	err := loadConfig(testEnvFile)
 	defer unsetEnvVars()
+
 	assert.Nil(t, err)
 	assert.EqualValues(t, "debug", os.Getenv("GIN_MODE"))
+}
 
+func Test_configStorage_NoNameEnv_Returns_Error(t *testing.T) {
+	err := configStorage()
+
+	assert.NotNil(t, err)
+	assert.EqualValues(t, "environment variable \"STORAGE_ACCOUNT_NAME\" not set. Cannot start", err.Error())
+}
+
+func Test_configStorage_NoKeyEnv_Returns_Error(t *testing.T) {
+	os.Setenv("STORAGE_ACCOUNT_NAME", "storage_account")
+	err := configStorage()
+
+	assert.NotNil(t, err)
+	assert.EqualValues(t, "environment variable \"STORAGE_ACCOUNT_KEY\" not set. Cannot start", err.Error())
+}
+
+func Test_configStorage_NoUrlEnv_Returns_Error(t *testing.T) {
+	os.Setenv("STORAGE_ACCOUNT_NAME", "storage_account")
+	os.Setenv("STORAGE_ACCOUNT_KEY", "storage_key")
+	err := configStorage()
+
+	assert.NotNil(t, err)
+	assert.EqualValues(t, "environment variable \"STORAGE_BASE_URL\" not set. Cannot start", err.Error())
+}
+
+func Test_configStorage_WithEnv_Returns_NoError(t *testing.T) {
+	writeTestEnv(testEnvFile)
+	defer deleteEnvFile(testEnvFile)
+	loadConfig(testEnvFile)
+	defer unsetEnvVars()
+	err := configStorage()
+
+	assert.Nil(t, err)
+	assert.EqualValues(t, "storage_account", StorageAccountName)
+	assert.EqualValues(t, "storage_key", StorageAccountKey)
+	assert.EqualValues(t, "storage_url", StorageBaseUrl)
 }
 
 func Test_configGin_NoEnvVars_SetsReleaseMode(t *testing.T) {
@@ -111,5 +158,9 @@ func Test_InitConfig_ReturnsNoError(t *testing.T) {
 	defer unsetEnvVars()
 
 	assert.Nil(t, err)
+	assert.EqualValues(t, "debug", GinMode)
 	assert.EqualValues(t, "127.0.0.1", ServerAddr)
+	assert.EqualValues(t, "9999", ServerPort)
+	assert.EqualValues(t, "storage_account", StorageAccountName)
+	assert.EqualValues(t, "storage_key", StorageAccountKey)
 }

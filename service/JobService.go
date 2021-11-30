@@ -82,17 +82,13 @@ func (s DefaultJobService) GetNextJob() (*dto.JobResponse, api_error.ApiErr) {
 }
 
 func (s DefaultJobService) SetStatus(id string, newStatus dto.JobStatusUpdateRequest) api_error.ApiErr {
-	statusRequest, err := parseStatusRequest(newStatus)
+	statusRequest, err := domain.ParseStatusRequest(newStatus)
 	if err != nil {
-		return api_error.NewBadRequestError(fmt.Sprintf("Could not parse status %v", newStatus.Status))
+		return err
 	}
 	err = s.repo.SetStatus(id, *statusRequest)
 	if err != nil {
 		return err
 	}
 	return nil
-}
-
-func parseStatusRequest(newStatus dto.JobStatusUpdateRequest) (*domain.JobStatusUpdate, api_error.ApiErr) {
-	return nil, nil
 }

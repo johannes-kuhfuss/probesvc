@@ -15,6 +15,7 @@ type JobService interface {
 	CreateJob(dto.NewJobRequest) (*dto.JobResponse, api_error.ApiErr)
 	DeleteJobById(string) api_error.ApiErr
 	GetNextJob() (*dto.JobResponse, api_error.ApiErr)
+	SetStatus(string, dto.JobStatusUpdateRequest) api_error.ApiErr
 }
 
 type DefaultJobService struct {
@@ -78,4 +79,20 @@ func (s DefaultJobService) GetNextJob() (*dto.JobResponse, api_error.ApiErr) {
 	}
 	response := job.ToDto()
 	return &response, nil
+}
+
+func (s DefaultJobService) SetStatus(id string, newStatus dto.JobStatusUpdateRequest) api_error.ApiErr {
+	statusRequest, err := parseStatusRequest(newStatus)
+	if err != nil {
+		return api_error.NewBadRequestError(fmt.Sprintf("Could not parse status %v", newStatus.Status))
+	}
+	err = s.repo.SetStatus(id, *statusRequest)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func parseStatusRequest(newStatus dto.JobStatusUpdateRequest) (*domain.JobStatusUpdate, api_error.ApiErr) {
+	return nil, nil
 }

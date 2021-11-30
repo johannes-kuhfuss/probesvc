@@ -107,3 +107,17 @@ func (mr *MockJobRepositoryMockRecorder) GetNext() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNext", reflect.TypeOf((*MockJobRepository)(nil).GetNext))
 }
+
+// SetStatus mocks base method.
+func (m *MockJobRepository) SetStatus(arg0 string, arg1 domain.JobStatusUpdate) api_error.ApiErr {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetStatus", arg0, arg1)
+	ret0, _ := ret[0].(api_error.ApiErr)
+	return ret0
+}
+
+// SetStatus indicates an expected call of SetStatus.
+func (mr *MockJobRepositoryMockRecorder) SetStatus(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetStatus", reflect.TypeOf((*MockJobRepository)(nil).SetStatus), arg0, arg1)
+}

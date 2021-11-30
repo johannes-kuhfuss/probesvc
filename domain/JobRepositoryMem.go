@@ -117,3 +117,7 @@ func (csm JobRepositoryMem) GetNext() (*Job, api_error.ApiErr) {
 	job, _ := filterById(csm.jobList, nextJobId)
 	return job, nil
 }
+
+func (csm JobRepositoryMem) SetStatus(id string, newStatus JobStatusUpdate) api_error.ApiErr {
+	return nil
+}

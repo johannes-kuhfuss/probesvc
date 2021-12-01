@@ -57,7 +57,7 @@ func wireApp() {
 	jobService = service.NewJobService(customerRepo)
 	jobHandler = handler.JobHandlers{Service: jobService}
 	azureFileRepo := domain.NewFileRepositoryAzure(azureClient)
-	fileService = service.NewFileService(azureFileRepo)
+	fileService = service.NewFileService(azureFileRepo, jobService)
 }
 
 func startRouter() {
@@ -82,8 +82,8 @@ func StartApp() {
 	initRouter()
 	wireApp()
 	mapUrls()
-	startRouter()
 	startProcessing()
+	startRouter()
 	logger.Info("Application ended")
 }
 

@@ -97,7 +97,7 @@ func (csm JobRepositoryMem) DeleteById(id string) api_error.ApiErr {
 }
 
 func (csm JobRepositoryMem) GetNext() (*Job, api_error.ApiErr) {
-	var nextJobId string
+	var nextJobId string = ""
 	var nextJobDate time.Time = date.GetNowUtc().Add(1 * time.Second)
 
 	csm.mu.Lock()
@@ -114,6 +114,10 @@ func (csm JobRepositoryMem) GetNext() (*Job, api_error.ApiErr) {
 				nextJobId = job.Id.String()
 			}
 		}
+	}
+	if nextJobId == "" {
+		err := api_error.NewNotFoundError("no jobs with status created in joblist")
+		return nil, err
 	}
 	job, _ := filterById(csm.jobList, nextJobId)
 	return job, nil

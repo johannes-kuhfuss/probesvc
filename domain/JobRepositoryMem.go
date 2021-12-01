@@ -74,7 +74,7 @@ func filterById(jList map[string]Job, id string) (*Job, api_error.ApiErr) {
 	return nil, api_error.NewNotFoundError(fmt.Sprintf("no job with id %v in joblist", id))
 }
 
-func (csm JobRepositoryMem) Create(job Job) api_error.ApiErr {
+func (csm JobRepositoryMem) Save(job Job) api_error.ApiErr {
 	csm.mu.Lock()
 	defer csm.mu.Unlock()
 	csm.jobList[job.Id.String()] = job

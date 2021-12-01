@@ -52,7 +52,7 @@ func (s DefaultJobService) CreateJob(jobreq dto.NewJobRequest) (*dto.JobResponse
 	if err != nil {
 		return nil, err
 	}
-	err = s.repo.Create(*newJob)
+	err = s.repo.Save(*newJob)
 	if err != nil {
 		return nil, err
 	}

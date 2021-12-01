@@ -117,7 +117,7 @@ func Test_CreateJob_Returns_InternalServerError(t *testing.T) {
 		SrcUrl: "url 1",
 	}
 	apiError := api_error.NewInternalServerError("database error", nil)
-	mockRepo.EXPECT().Create(gomock.Any()).Return(apiError)
+	mockRepo.EXPECT().Save(gomock.Any()).Return(apiError)
 
 	result, err := service.CreateJob(jobReq)
 
@@ -134,7 +134,7 @@ func Test_CreateJob_Returns_NoError(t *testing.T) {
 		Name:   "job 1",
 		SrcUrl: "url 1",
 	}
-	mockRepo.EXPECT().Create(gomock.Any()).Return(nil)
+	mockRepo.EXPECT().Save(gomock.Any()).Return(nil)
 
 	result, err := service.CreateJob(jobReq)
 

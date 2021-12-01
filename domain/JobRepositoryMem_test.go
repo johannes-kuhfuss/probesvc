@@ -129,7 +129,7 @@ func Test_Create_Returns_NoError(t *testing.T) {
 	defer teardown()
 	job, _ := NewJob("job 1", "url 1")
 
-	err := jobRepo.Create(*job)
+	err := jobRepo.Save(*job)
 
 	assert.Nil(t, err)
 	assert.EqualValues(t, 1, len(jobRepo.jobList))

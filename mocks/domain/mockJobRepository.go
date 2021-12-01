@@ -35,20 +35,6 @@ func (m *MockJobRepository) EXPECT() *MockJobRepositoryMockRecorder {
 	return m.recorder
 }
 
-// Create mocks base method.
-func (m *MockJobRepository) Create(arg0 domain.Job) api_error.ApiErr {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", arg0)
-	ret0, _ := ret[0].(api_error.ApiErr)
-	return ret0
-}
-
-// Create indicates an expected call of Create.
-func (mr *MockJobRepositoryMockRecorder) Create(arg0 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockJobRepository)(nil).Create), arg0)
-}
-
 // DeleteById mocks base method.
 func (m *MockJobRepository) DeleteById(arg0 string) api_error.ApiErr {
 	m.ctrl.T.Helper()
@@ -106,6 +92,20 @@ func (m *MockJobRepository) GetNext() (*domain.Job, api_error.ApiErr) {
 func (mr *MockJobRepositoryMockRecorder) GetNext() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNext", reflect.TypeOf((*MockJobRepository)(nil).GetNext))
+}
+
+// Save mocks base method.
+func (m *MockJobRepository) Save(arg0 domain.Job) api_error.ApiErr {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Save", arg0)
+	ret0, _ := ret[0].(api_error.ApiErr)
+	return ret0
+}
+
+// Save indicates an expected call of Save.
+func (mr *MockJobRepositoryMockRecorder) Save(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockJobRepository)(nil).Save), arg0)
 }
 
 // SetStatus mocks base method.

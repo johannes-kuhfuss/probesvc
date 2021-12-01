@@ -77,6 +77,7 @@ func filterById(jList map[string]Job, id string) (*Job, api_error.ApiErr) {
 func (csm JobRepositoryMem) Save(job Job) api_error.ApiErr {
 	csm.mu.Lock()
 	defer csm.mu.Unlock()
+	job.ModifiedAt = date.GetNowUtc()
 	csm.jobList[job.Id.String()] = job
 	return nil
 }

@@ -82,6 +82,10 @@ func (s DefaultJobService) GetNextJob() (*dto.JobResponse, api_error.ApiErr) {
 }
 
 func (s DefaultJobService) SetStatus(id string, newStatus dto.JobStatusUpdateRequest) api_error.ApiErr {
+	_, err := s.GetJobById(id)
+	if err != nil {
+		return api_error.NewNotFoundError(fmt.Sprintf("Job with id %v does not exist", id))
+	}
 	statusRequest, err := domain.ParseStatusRequest(newStatus)
 	if err != nil {
 		return err

@@ -97,7 +97,7 @@ func (job Job) ToDto() dto.JobResponse {
 
 func ParseStatusRequest(newStatus dto.JobStatusUpdateRequest) (*JobStatusUpdate, api_error.ApiErr) {
 	jobStatusUpdate := JobStatusUpdate{}
-	switch newStatus.Status {
+	switch strings.ToLower(newStatus.Status) {
 	case "created":
 		jobStatusUpdate.newStatus = JobStatusCreated
 	case "queued":
@@ -110,9 +110,9 @@ func ParseStatusRequest(newStatus dto.JobStatusUpdateRequest) (*JobStatusUpdate,
 		jobStatusUpdate.newStatus = JobStatusFinished
 	case "failed":
 		jobStatusUpdate.newStatus = JobStatusFailed
+		jobStatusUpdate.errMsg = newStatus.ErrMsg
 	default:
 		return nil, api_error.NewBadRequestError(fmt.Sprintf("Could not parse status value %v", newStatus.Status))
 	}
-	jobStatusUpdate.errMsg = newStatus.ErrMsg
 	return &jobStatusUpdate, nil
 }

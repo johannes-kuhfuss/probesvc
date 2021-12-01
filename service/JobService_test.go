@@ -215,3 +215,78 @@ func Test_GetNextJob_Returns_NoError(t *testing.T) {
 	assert.EqualValues(t, nextJob.Name, job.Name)
 	assert.EqualValues(t, nextJob.SrcUrl, job.SrcUrl)
 }
+
+func Test_SetStatus_NoJobWithId_Returns_NotFoundError(t *testing.T) {
+	teardown := setup(t)
+	defer teardown()
+	id := ksuid.New().String()
+	updReq := dto.JobStatusUpdateRequest{
+		Status: "",
+		ErrMsg: "",
+	}
+	apiError := api_error.NewNotFoundError(fmt.Sprintf("Job with id %v does not exist", id))
+	mockRepo.EXPECT().FindById(id).Return(nil, apiError)
+
+	err := service.SetStatus(id, updReq)
+
+	assert.NotNil(t, err)
+	assert.EqualValues(t, apiError.Message(), err.Message())
+	assert.EqualValues(t, http.StatusNotFound, err.StatusCode())
+}
+
+func Test_SetStatus_WrongStatusValue_Returns_BadRequestError(t *testing.T) {
+	teardown := setup(t)
+	defer teardown()
+	newJob, _ := realdomain.NewJob("job 1", "url1")
+	id := newJob.Id.String()
+	mockRepo.EXPECT().FindById(id).Return(newJob, nil)
+	updReq := dto.JobStatusUpdateRequest{
+		Status: "wrong_value",
+		ErrMsg: "",
+	}
+
+	err := service.SetStatus(id, updReq)
+
+	assert.NotNil(t, err)
+	assert.EqualValues(t, fmt.Sprintf("Could not parse status value %v", updReq.Status), err.Message())
+	assert.EqualValues(t, http.StatusBadRequest, err.StatusCode())
+}
+
+func Test_SetStatus_StatusFailed_Returns_Error(t *testing.T) {
+	teardown := setup(t)
+	defer teardown()
+	newJob, _ := realdomain.NewJob("job 1", "url1")
+	id := newJob.Id.String()
+	mockRepo.EXPECT().FindById(id).Return(newJob, nil)
+	updReq := dto.JobStatusUpdateRequest{
+		Status: "failed",
+		ErrMsg: "failure_reason",
+	}
+	updReqParsed, _ := realdomain.ParseStatusRequest(updReq)
+	apiError := api_error.NewInternalServerError("something bad happened", nil)
+	mockRepo.EXPECT().SetStatus(id, *updReqParsed).Return(apiError)
+
+	err := service.SetStatus(id, updReq)
+
+	assert.NotNil(t, err)
+	assert.EqualValues(t, "something bad happened", err.Message())
+	assert.EqualValues(t, http.StatusInternalServerError, err.StatusCode())
+}
+
+func Test_SetStatus_StatusFailed_Returns_NoError(t *testing.T) {
+	teardown := setup(t)
+	defer teardown()
+	newJob, _ := realdomain.NewJob("job 1", "url1")
+	id := newJob.Id.String()
+	mockRepo.EXPECT().FindById(id).Return(newJob, nil)
+	updReq := dto.JobStatusUpdateRequest{
+		Status: "failed",
+		ErrMsg: "failure_reason",
+	}
+	updReqParsed, _ := realdomain.ParseStatusRequest(updReq)
+	mockRepo.EXPECT().SetStatus(id, *updReqParsed).Return(nil)
+
+	err := service.SetStatus(id, updReq)
+
+	assert.Nil(t, err)
+}

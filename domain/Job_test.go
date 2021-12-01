@@ -1,10 +1,12 @@
 package domain
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
 	"time"
 
+	"github.com/johannes-kuhfuss/probesvc/dto"
 	"github.com/johannes-kuhfuss/services_utils/date"
 	"github.com/segmentio/ksuid"
 	"github.com/stretchr/testify/assert"
@@ -85,4 +87,95 @@ func Test_JobToDto_Returns_JobDto(t *testing.T) {
 	assert.EqualValues(t, JobStatusCreated, newJobDto.Status)
 	assert.EqualValues(t, "", newJobDto.ErrorMsg)
 	assert.EqualValues(t, "", newJobDto.TechInfo)
+}
+
+func Test_ParseStatusRequest_WrongStatus_Returns_Badrequest(t *testing.T) {
+	request := dto.JobStatusUpdateRequest{
+		Status: "wrong_value",
+		ErrMsg: "",
+	}
+	jobUpd, err := ParseStatusRequest(request)
+
+	assert.Nil(t, jobUpd)
+	assert.NotNil(t, err)
+	assert.EqualValues(t, fmt.Sprintf("Could not parse status value %v", request.Status), err.Message())
+	assert.EqualValues(t, http.StatusBadRequest, err.StatusCode())
+}
+
+func Test_ParseStatusRequest_Created_Returns_NoError(t *testing.T) {
+	request := dto.JobStatusUpdateRequest{
+		Status: "created",
+		ErrMsg: "",
+	}
+	jobUpd, err := ParseStatusRequest(request)
+
+	assert.NotNil(t, jobUpd)
+	assert.Nil(t, err)
+	assert.EqualValues(t, JobStatusCreated, jobUpd.newStatus)
+	assert.EqualValues(t, "", jobUpd.errMsg)
+}
+
+func Test_ParseStatusRequest_Queued_Returns_NoError(t *testing.T) {
+	request := dto.JobStatusUpdateRequest{
+		Status: "queued",
+		ErrMsg: "",
+	}
+	jobUpd, err := ParseStatusRequest(request)
+
+	assert.NotNil(t, jobUpd)
+	assert.Nil(t, err)
+	assert.EqualValues(t, JobStatusQueued, jobUpd.newStatus)
+	assert.EqualValues(t, "", jobUpd.errMsg)
+}
+
+func Test_ParseStatusRequest_Running_Returns_NoError(t *testing.T) {
+	request := dto.JobStatusUpdateRequest{
+		Status: "running",
+		ErrMsg: "",
+	}
+	jobUpd, err := ParseStatusRequest(request)
+
+	assert.NotNil(t, jobUpd)
+	assert.Nil(t, err)
+	assert.EqualValues(t, JobStatusRunning, jobUpd.newStatus)
+	assert.EqualValues(t, "", jobUpd.errMsg)
+}
+
+func Test_ParseStatusRequest_Paused_Returns_NoError(t *testing.T) {
+	request := dto.JobStatusUpdateRequest{
+		Status: "paused",
+		ErrMsg: "",
+	}
+	jobUpd, err := ParseStatusRequest(request)
+
+	assert.NotNil(t, jobUpd)
+	assert.Nil(t, err)
+	assert.EqualValues(t, JobStatusPaused, jobUpd.newStatus)
+	assert.EqualValues(t, "", jobUpd.errMsg)
+}
+
+func Test_ParseStatusRequest_Finished_Returns_NoError(t *testing.T) {
+	request := dto.JobStatusUpdateRequest{
+		Status: "finished",
+		ErrMsg: "",
+	}
+	jobUpd, err := ParseStatusRequest(request)
+
+	assert.NotNil(t, jobUpd)
+	assert.Nil(t, err)
+	assert.EqualValues(t, JobStatusFinished, jobUpd.newStatus)
+	assert.EqualValues(t, "", jobUpd.errMsg)
+}
+
+func Test_ParseStatusRequest_Failed_Returns_NoError(t *testing.T) {
+	request := dto.JobStatusUpdateRequest{
+		Status: "failed",
+		ErrMsg: "why-did-it-fail",
+	}
+	jobUpd, err := ParseStatusRequest(request)
+
+	assert.NotNil(t, jobUpd)
+	assert.Nil(t, err)
+	assert.EqualValues(t, JobStatusFailed, jobUpd.newStatus)
+	assert.EqualValues(t, request.ErrMsg, jobUpd.errMsg)
 }

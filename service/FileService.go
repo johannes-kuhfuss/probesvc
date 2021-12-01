@@ -1,6 +1,11 @@
 package service
 
-import "github.com/johannes-kuhfuss/probesvc/domain"
+import (
+	"time"
+
+	"github.com/johannes-kuhfuss/probesvc/config"
+	"github.com/johannes-kuhfuss/probesvc/domain"
+)
 
 type FileService interface {
 	Run()
@@ -14,5 +19,8 @@ func NewFileService(repository domain.FileRepository) DefaultFileService {
 	return DefaultFileService{repository}
 }
 
-func (s DefaultJobService) Run() {
+func (s DefaultFileService) Run() {
+	for !config.Shutdown {
+		time.Sleep(time.Second * time.Duration(config.NoJobWaitTime))
+	}
 }

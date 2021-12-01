@@ -21,6 +21,8 @@ var (
 	StorageAccountName string
 	StorageAccountKey  string
 	StorageBaseUrl     string
+	Shutdown           bool = false
+	NoJobWaitTime      int  = 10
 )
 
 func InitConfig(file string) error {

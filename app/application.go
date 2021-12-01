@@ -81,5 +81,10 @@ func StartApp() {
 	wireApp()
 	mapUrls()
 	startRouter()
+	startProcessing()
 	logger.Info("Application ended")
+}
+
+func startProcessing() {
+	go fileService.Run()
 }

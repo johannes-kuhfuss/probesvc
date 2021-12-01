@@ -15,11 +15,11 @@ import (
 )
 
 var (
-	router        *gin.Engine
-	jobHandler    handler.JobHandlers
-	azureClient   *azblob.ServiceClient
-	MyJobService  service.DefaultJobService
-	MyFileService service.DefaultFileService
+	router      *gin.Engine
+	jobHandler  handler.JobHandlers
+	azureClient *azblob.ServiceClient
+	jobService  service.DefaultJobService
+	fileService service.DefaultFileService
 )
 
 func connectToAzureBlob() (*azblob.ServiceClient, api_error.ApiErr) {
@@ -54,10 +54,10 @@ func initRouter() {
 
 func wireApp() {
 	customerRepo := domain.NewJobRepositoryMem()
-	MyJobService = service.NewJobService(customerRepo)
-	jobHandler = handler.JobHandlers{Service: MyJobService}
+	jobService = service.NewJobService(customerRepo)
+	jobHandler = handler.JobHandlers{Service: jobService}
 	azureFileRepo := domain.NewFileRepositoryAzure(azureClient)
-	MyFileService = service.NewFileService(azureFileRepo)
+	fileService = service.NewFileService(azureFileRepo)
 }
 
 func startRouter() {
@@ -88,5 +88,5 @@ func StartApp() {
 }
 
 func startProcessing() {
-	go MyFileService.Run()
+	go fileService.Run()
 }

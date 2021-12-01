@@ -54,7 +54,6 @@ func Test_FindAll_NoFilter_Returns_NoError(t *testing.T) {
 
 	assert.NotNil(t, jList)
 	assert.Nil(t, err)
-	assert.Equal(t, convertMapToSlice(jobRepo.jobList), jList)
 	assert.EqualValues(t, 2, len(*jList))
 }
 

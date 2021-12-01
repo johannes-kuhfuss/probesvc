@@ -120,5 +120,12 @@ func (csm JobRepositoryMem) GetNext() (*Job, api_error.ApiErr) {
 }
 
 func (csm JobRepositoryMem) SetStatus(id string, newStatus JobStatusUpdate) api_error.ApiErr {
+	job, err := csm.FindById(id)
+	if err != nil {
+		return err
+	}
+	job.Status = newStatus.newStatus
+	job.ErrorMsg = newStatus.errMsg
+	csm.Save(*job)
 	return nil
 }

@@ -196,3 +196,30 @@ func Test_GetNext_Returns_NoError(t *testing.T) {
 	assert.Nil(t, err)
 	assert.EqualValues(t, createdId, job.Id.String())
 }
+
+func Test_SetStatus_NoJob_Returns_NotFoundError(t *testing.T) {
+	teardown := setup()
+	defer teardown()
+	newStatus := JobStatusUpdate{}
+	err := jobRepo.SetStatus("", newStatus)
+
+	assert.NotNil(t, err)
+	assert.EqualValues(t, "no jobs in joblist", err.Message())
+	assert.EqualValues(t, http.StatusNotFound, err.StatusCode())
+}
+
+func Test_SetStatus_Returns_NoError(t *testing.T) {
+	teardown := setup()
+	defer teardown()
+	id := fillJobList()
+	newStatus := JobStatusUpdate{
+		newStatus: JobStatusFailed,
+		errMsg:    "why-did-I-fail",
+	}
+	err := jobRepo.SetStatus(id, newStatus)
+	job, _ := jobRepo.FindById(id)
+
+	assert.Nil(t, err)
+	assert.EqualValues(t, newStatus.newStatus, job.Status)
+	assert.EqualValues(t, newStatus.errMsg, job.ErrorMsg)
+}

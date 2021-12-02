@@ -11,3 +11,7 @@ type FileRepositoryAzure struct {
 func NewFileRepositoryAzure(client *azblob.ServiceClient) FileRepositoryAzure {
 	return FileRepositoryAzure{client}
 }
+
+func (fra FileRepositoryAzure) GetClient() *azblob.ServiceClient {
+	return fra.serviceClient
+}

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"os/exec"
@@ -29,7 +30,8 @@ type DefaultFileService struct {
 }
 
 var (
-	binPath string = "./service/ffprobe.exe"
+	binPath   string                     = "./service/ffprobe.exe"
+	jobStatus dto.JobStatusUpdateRequest = dto.JobStatusUpdateRequest{}
 )
 
 func NewFileService(repository domain.FileRepository, jobSrv JobService) DefaultFileService {
@@ -37,7 +39,7 @@ func NewFileService(repository domain.FileRepository, jobSrv JobService) Default
 }
 
 func (s DefaultFileService) Run() {
-	jobStatus := dto.JobStatusUpdateRequest{}
+
 	for !config.Shutdown {
 		job, err := s.jobSrv.GetNextJob()
 		if err != nil {
@@ -48,24 +50,31 @@ func (s DefaultFileService) Run() {
 			s.jobSrv.SetStatus(job.Id, jobStatus)
 			result, err := s.analyzeFile(job.SrcUrl)
 			if err != nil {
-				logger.Error("Error while analyzing file", err)
-				jobStatus.Status = "failed"
-				jobStatus.ErrMsg = "Error while analyzing file"
-				s.jobSrv.SetStatus(job.Id, jobStatus)
+				s.failJob(err, job.Id)
 			} else {
 				err := s.addResultToJob(job.Id, result)
 				if err != nil {
-					logger.Error("Error while storing analysis data to job", err)
-					jobStatus.Status = "failed"
-					jobStatus.ErrMsg = "Error while storing analysis data to job"
-					s.jobSrv.SetStatus(job.Id, jobStatus)
+					s.failJob(err, job.Id)
 				} else {
-					jobStatus.Status = "finished"
-					s.jobSrv.SetStatus(job.Id, jobStatus)
+					s.finishJob(job.Id, job.SrcUrl)
 				}
 			}
 		}
 	}
+}
+
+func (s DefaultFileService) failJob(err api_error.ApiErr, id string) {
+	logger.Error("Error while analyzing file", err)
+	jobStatus.Status = "failed"
+	jobStatus.ErrMsg = "Error while analyzing file"
+	s.jobSrv.SetStatus(id, jobStatus)
+}
+
+func (s DefaultFileService) finishJob(id string, srcUrl string) {
+	logger.Info(fmt.Sprintf("Finished data extraction for Job ID %v with Source %v", id, srcUrl))
+	jobStatus.Status = "failed"
+	jobStatus.ErrMsg = "Error while analyzing file"
+	s.jobSrv.SetStatus(id, jobStatus)
 }
 
 func (s DefaultFileService) addResultToJob(id string, result string) api_error.ApiErr {
@@ -77,6 +86,24 @@ func (s DefaultFileService) addResultToJob(id string, result string) api_error.A
 }
 
 func (s DefaultFileService) analyzeFile(srcUrl string) (string, api_error.ApiErr) {
+	ctx := context.Background()
+	reader, err := s.getAzureReader(srcUrl)
+	if err != nil {
+		return "", api_error.NewInternalServerError("could not connect to storage", err)
+	}
+
+	ffArgs := []string{"-loglevel", "fatal", "-print_format", "json", "-show_format", "-show_streams", "-"}
+	cmd := exec.CommandContext(ctx, binPath, ffArgs...)
+	cmd.Stdin = *reader
+
+	result, runErr := runProbe(cmd)
+	if runErr != nil {
+		return "", api_error.NewInternalServerError("could not extract metadata from file", err)
+	}
+	return result, nil
+}
+
+func (s DefaultFileService) getAzureReader(srcUrl string) (*io.ReadCloser, api_error.ApiErr) {
 	url, _ := url.Parse(srcUrl)
 	containerName := strings.TrimLeft(filepath.Dir(url.Path), string(os.PathSeparator))
 	fileName := filepath.Base(srcUrl)
@@ -84,24 +111,12 @@ func (s DefaultFileService) analyzeFile(srcUrl string) (string, api_error.ApiErr
 	container := s.repo.GetClient().NewContainerClient(containerName)
 	blockBlob := container.NewBlobClient(fileName)
 	get, err := blockBlob.Download(ctx, nil)
-	logger.Info(fmt.Sprintf("srcUrl: %s", srcUrl))
-	logger.Info(fmt.Sprintf("container: %s", containerName))
-	logger.Info(fmt.Sprintf("filename: %s", fileName))
 	if err != nil {
 		logger.Error("Cannot access file on storage account", err)
-		return "", api_error.NewBadRequestError("Cannot access file on storage account")
+		return nil, api_error.NewBadRequestError("Cannot access file on storage account")
 	}
 	reader := get.Body(azblob.RetryReaderOptions{})
-
-	ffArgs := []string{"-loglevel", "fatal", "-print_format", "json", "-show_format", "-show_streams", "-"}
-	cmd := exec.CommandContext(ctx, binPath, ffArgs...)
-	cmd.Stdin = reader
-
-	result, err := runProbe(cmd)
-	if err != nil {
-		return "", api_error.NewInternalServerError("could not extract metadata from file", err)
-	}
-	return result, nil
+	return &reader, nil
 }
 
 func runProbe(cmd *exec.Cmd) (data string, err error) {

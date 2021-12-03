@@ -46,39 +46,44 @@ func (s DefaultFileService) Run() {
 			logger.Debug(err.Message())
 			time.Sleep(time.Second * time.Duration(config.NoJobWaitTime))
 		} else {
-			jobStatus.Status = "running"
-			s.jobSrv.SetStatus(job.Id, jobStatus)
+			s.startJob(job)
 			result, err := s.analyzeFile(job.SrcUrl)
 			if err != nil {
-				s.failJob(err, job.Id)
+				s.failJob(job, err)
 			} else {
-				err := s.addResultToJob(job.Id, result)
+				err := s.addResultToJob(job, result)
 				if err != nil {
-					s.failJob(err, job.Id)
+					s.failJob(job, err)
 				} else {
-					s.finishJob(job.Id, job.SrcUrl)
+					s.finishJob(job)
 				}
 			}
 		}
 	}
 }
 
-func (s DefaultFileService) failJob(err api_error.ApiErr, id string) {
+func (s DefaultFileService) startJob(job *dto.JobResponse) {
+	logger.Info(fmt.Sprintf("Started data extraction for Job ID %v with Source %v", job.Id, job.SrcUrl))
+	jobStatus.Status = "running"
+	s.jobSrv.SetStatus(job.Id, jobStatus)
+}
+
+func (s DefaultFileService) failJob(job *dto.JobResponse, err api_error.ApiErr) {
 	logger.Error("Error while analyzing file", err)
 	jobStatus.Status = "failed"
 	jobStatus.ErrMsg = "Error while analyzing file"
-	s.jobSrv.SetStatus(id, jobStatus)
+	s.jobSrv.SetStatus(job.Id, jobStatus)
 }
 
-func (s DefaultFileService) finishJob(id string, srcUrl string) {
-	logger.Info(fmt.Sprintf("Finished data extraction for Job ID %v with Source %v", id, srcUrl))
+func (s DefaultFileService) finishJob(job *dto.JobResponse) {
+	logger.Info(fmt.Sprintf("Finished data extraction for Job ID %v with Source %v", job.Id, job.SrcUrl))
 	jobStatus.Status = "failed"
 	jobStatus.ErrMsg = "Error while analyzing file"
-	s.jobSrv.SetStatus(id, jobStatus)
+	s.jobSrv.SetStatus(job.Id, jobStatus)
 }
 
-func (s DefaultFileService) addResultToJob(id string, result string) api_error.ApiErr {
-	err := s.jobSrv.SetResult(id, result)
+func (s DefaultFileService) addResultToJob(job *dto.JobResponse, result string) api_error.ApiErr {
+	err := s.jobSrv.SetResult(job.Id, result)
 	if err != nil {
 		return err
 	}
@@ -110,31 +115,31 @@ func (s DefaultFileService) getAzureReader(srcUrl string) (*io.ReadCloser, api_e
 	ctx := context.Background()
 	container := s.repo.GetClient().NewContainerClient(containerName)
 	blockBlob := container.NewBlobClient(fileName)
+
 	get, err := blockBlob.Download(ctx, nil)
 	if err != nil {
 		logger.Error("Cannot access file on storage account", err)
 		return nil, api_error.NewBadRequestError("Cannot access file on storage account")
 	}
 	reader := get.Body(azblob.RetryReaderOptions{})
+
 	return &reader, nil
 }
 
-func runProbe(cmd *exec.Cmd) (data string, err error) {
+func runProbe(cmd *exec.Cmd) (data string, err api_error.ApiErr) {
 	var outputBuf bytes.Buffer
 	var stdErr bytes.Buffer
 
 	cmd.Stdout = &outputBuf
 	cmd.Stderr = &stdErr
 
-	err = cmd.Run()
-	if err != nil {
-		return "", fmt.Errorf("error running %s [%s] %w", binPath, stdErr.String(), err)
+	runErr := cmd.Run()
+	if runErr != nil {
+		return "", api_error.NewInternalServerError(fmt.Sprintf("error running %s [%s]", binPath, stdErr.String()), runErr)
 	}
-
 	if stdErr.Len() > 0 {
-		return "", fmt.Errorf("ffprobe error: %s", stdErr.String())
+		return "", api_error.NewInternalServerError(fmt.Sprintf("ffprobe error: %s", stdErr.String()), nil)
 	}
-
 	data = outputBuf.String()
 
 	return data, nil

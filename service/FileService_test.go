@@ -29,7 +29,8 @@ func setupFile(t *testing.T) func() {
 	}
 }
 
-func Test_addResultToJob_Returns_(t *testing.T) {
+func Test_startJob(t *testing.T) {
 	teardown := setupFile(t)
 	defer teardown()
+
 }

@@ -25,14 +25,14 @@ type FileService interface {
 
 type DefaultFileService struct {
 	repo   domain.FileRepository
-	jobSrv DefaultJobService
+	jobSrv JobService
 }
 
 var (
 	binPath string = "./service/ffprobe.exe"
 )
 
-func NewFileService(repository domain.FileRepository, jobSrv DefaultJobService) DefaultFileService {
+func NewFileService(repository domain.FileRepository, jobSrv JobService) DefaultFileService {
 	return DefaultFileService{repository, jobSrv}
 }
 

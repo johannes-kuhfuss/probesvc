@@ -15,28 +15,28 @@ import (
 )
 
 var (
-	ctrl     *gomock.Controller
-	mockRepo *domain.MockJobRepository
-	service  JobService
+	jobCtrl     *gomock.Controller
+	mockJobRepo *domain.MockJobRepository
+	jobService  JobService
 )
 
-func setup(t *testing.T) func() {
-	ctrl = gomock.NewController(t)
-	mockRepo = domain.NewMockJobRepository(ctrl)
-	service = NewJobService(mockRepo)
+func setupJob(t *testing.T) func() {
+	jobCtrl = gomock.NewController(t)
+	mockJobRepo = domain.NewMockJobRepository(jobCtrl)
+	jobService = NewJobService(mockJobRepo)
 	return func() {
-		service = nil
-		ctrl.Finish()
+		jobService = nil
+		jobCtrl.Finish()
 	}
 }
 
 func Test_GetAllJobs_Returns_NotFoundError(t *testing.T) {
-	teardown := setup(t)
+	teardown := setupJob(t)
 	defer teardown()
 	apiError := api_error.NewNotFoundError("no jobs found")
-	mockRepo.EXPECT().FindAll("").Return(nil, apiError)
+	mockJobRepo.EXPECT().FindAll("").Return(nil, apiError)
 
-	result, err := service.GetAllJobs("")
+	result, err := jobService.GetAllJobs("")
 
 	assert.Nil(t, result)
 	assert.NotNil(t, err)
@@ -45,7 +45,7 @@ func Test_GetAllJobs_Returns_NotFoundError(t *testing.T) {
 }
 
 func Test_GetAllJobs_Returns_NoError(t *testing.T) {
-	teardown := setup(t)
+	teardown := setupJob(t)
 	defer teardown()
 	job1, _ := realdomain.NewJob("job 1", "url1")
 	job2, _ := realdomain.NewJob("job 2", "url2")
@@ -56,9 +56,9 @@ func Test_GetAllJobs_Returns_NoError(t *testing.T) {
 	jobResult = append(jobResult, job1.ToDto())
 	jobResult = append(jobResult, job2.ToDto())
 
-	mockRepo.EXPECT().FindAll("").Return(&jobs, nil)
+	mockJobRepo.EXPECT().FindAll("").Return(&jobs, nil)
 
-	result, err := service.GetAllJobs("")
+	result, err := jobService.GetAllJobs("")
 
 	assert.NotNil(t, result)
 	assert.Nil(t, err)
@@ -66,13 +66,13 @@ func Test_GetAllJobs_Returns_NoError(t *testing.T) {
 }
 
 func Test_GetJobById_Returns_NotFoundError(t *testing.T) {
-	teardown := setup(t)
+	teardown := setupJob(t)
 	defer teardown()
 	id := ksuid.New().String()
 	apiError := api_error.NewNotFoundError(fmt.Sprintf("job with id %v not found", id))
-	mockRepo.EXPECT().FindById(id).Return(nil, apiError)
+	mockJobRepo.EXPECT().FindById(id).Return(nil, apiError)
 
-	result, err := service.GetJobById(id)
+	result, err := jobService.GetJobById(id)
 
 	assert.Nil(t, result)
 	assert.NotNil(t, err)
@@ -81,14 +81,14 @@ func Test_GetJobById_Returns_NotFoundError(t *testing.T) {
 }
 
 func Test_GetJobById_Returns_NoError(t *testing.T) {
-	teardown := setup(t)
+	teardown := setupJob(t)
 	defer teardown()
 	newJob, _ := realdomain.NewJob("job 1", "url1")
 	jobResp := newJob.ToDto()
 	id := newJob.Id.String()
-	mockRepo.EXPECT().FindById(id).Return(newJob, nil)
+	mockJobRepo.EXPECT().FindById(id).Return(newJob, nil)
 
-	result, err := service.GetJobById(id)
+	result, err := jobService.GetJobById(id)
 
 	assert.NotNil(t, result)
 	assert.Nil(t, err)
@@ -96,13 +96,13 @@ func Test_GetJobById_Returns_NoError(t *testing.T) {
 }
 
 func Test_CreateJob_Returns_BaqRequestError(t *testing.T) {
-	teardown := setup(t)
+	teardown := setupJob(t)
 	defer teardown()
 	jobReq := dto.NewJobRequest{
 		Name:   "job 1",
 		SrcUrl: "",
 	}
-	result, err := service.CreateJob(jobReq)
+	result, err := jobService.CreateJob(jobReq)
 	assert.Nil(t, result)
 	assert.NotNil(t, err)
 	assert.EqualValues(t, "Job must have a source URL", err.Message())
@@ -110,16 +110,16 @@ func Test_CreateJob_Returns_BaqRequestError(t *testing.T) {
 }
 
 func Test_CreateJob_Returns_InternalServerError(t *testing.T) {
-	teardown := setup(t)
+	teardown := setupJob(t)
 	defer teardown()
 	jobReq := dto.NewJobRequest{
 		Name:   "job 1",
 		SrcUrl: "url 1",
 	}
 	apiError := api_error.NewInternalServerError("database error", nil)
-	mockRepo.EXPECT().Save(gomock.Any()).Return(apiError)
+	mockJobRepo.EXPECT().Save(gomock.Any()).Return(apiError)
 
-	result, err := service.CreateJob(jobReq)
+	result, err := jobService.CreateJob(jobReq)
 
 	assert.Nil(t, result)
 	assert.NotNil(t, err)
@@ -128,15 +128,15 @@ func Test_CreateJob_Returns_InternalServerError(t *testing.T) {
 }
 
 func Test_CreateJob_Returns_NoError(t *testing.T) {
-	teardown := setup(t)
+	teardown := setupJob(t)
 	defer teardown()
 	jobReq := dto.NewJobRequest{
 		Name:   "job 1",
 		SrcUrl: "url 1",
 	}
-	mockRepo.EXPECT().Save(gomock.Any()).Return(nil)
+	mockJobRepo.EXPECT().Save(gomock.Any()).Return(nil)
 
-	result, err := service.CreateJob(jobReq)
+	result, err := jobService.CreateJob(jobReq)
 
 	assert.NotNil(t, result)
 	assert.Nil(t, err)
@@ -146,13 +146,13 @@ func Test_CreateJob_Returns_NoError(t *testing.T) {
 }
 
 func Test_DeleteJobById_Returns_NotFoundError(t *testing.T) {
-	teardown := setup(t)
+	teardown := setupJob(t)
 	defer teardown()
 	id := ksuid.New().String()
 	apiError := api_error.NewNotFoundError(fmt.Sprintf("Job with id %v does not exist", id))
-	mockRepo.EXPECT().FindById(id).Return(nil, apiError)
+	mockJobRepo.EXPECT().FindById(id).Return(nil, apiError)
 
-	err := service.DeleteJobById(id)
+	err := jobService.DeleteJobById(id)
 
 	assert.NotNil(t, err)
 	assert.EqualValues(t, apiError.Message(), err.Message())
@@ -160,15 +160,15 @@ func Test_DeleteJobById_Returns_NotFoundError(t *testing.T) {
 }
 
 func Test_DeleteJobById_Returns_InternalServerError(t *testing.T) {
-	teardown := setup(t)
+	teardown := setupJob(t)
 	defer teardown()
 	newJob, _ := realdomain.NewJob("job 1", "url1")
 	id := newJob.Id.String()
-	mockRepo.EXPECT().FindById(id).Return(newJob, nil)
+	mockJobRepo.EXPECT().FindById(id).Return(newJob, nil)
 	apiError := api_error.NewInternalServerError("database error", nil)
-	mockRepo.EXPECT().DeleteById(id).Return(apiError)
+	mockJobRepo.EXPECT().DeleteById(id).Return(apiError)
 
-	err := service.DeleteJobById(id)
+	err := jobService.DeleteJobById(id)
 
 	assert.NotNil(t, err)
 	assert.EqualValues(t, apiError.Message(), err.Message())
@@ -176,25 +176,25 @@ func Test_DeleteJobById_Returns_InternalServerError(t *testing.T) {
 }
 
 func Test_DeleteJobById_Returns_NoError(t *testing.T) {
-	teardown := setup(t)
+	teardown := setupJob(t)
 	defer teardown()
 	newJob, _ := realdomain.NewJob("job 1", "url1")
 	id := newJob.Id.String()
-	mockRepo.EXPECT().FindById(id).Return(newJob, nil)
-	mockRepo.EXPECT().DeleteById(id).Return(nil)
+	mockJobRepo.EXPECT().FindById(id).Return(newJob, nil)
+	mockJobRepo.EXPECT().DeleteById(id).Return(nil)
 
-	err := service.DeleteJobById(id)
+	err := jobService.DeleteJobById(id)
 
 	assert.Nil(t, err)
 }
 
 func Test_GetNextJob_Returns_NotFoundError(t *testing.T) {
-	teardown := setup(t)
+	teardown := setupJob(t)
 	defer teardown()
 	apiError := api_error.NewNotFoundError("No next job found")
-	mockRepo.EXPECT().GetNext().Return(nil, apiError)
+	mockJobRepo.EXPECT().GetNext().Return(nil, apiError)
 
-	job, err := service.GetNextJob()
+	job, err := jobService.GetNextJob()
 
 	assert.Nil(t, job)
 	assert.NotNil(t, err)
@@ -203,12 +203,12 @@ func Test_GetNextJob_Returns_NotFoundError(t *testing.T) {
 }
 
 func Test_GetNextJob_Returns_NoError(t *testing.T) {
-	teardown := setup(t)
+	teardown := setupJob(t)
 	defer teardown()
 	nextJob, _ := realdomain.NewJob("job 1", "url 1")
-	mockRepo.EXPECT().GetNext().Return(nextJob, nil)
+	mockJobRepo.EXPECT().GetNext().Return(nextJob, nil)
 
-	job, err := service.GetNextJob()
+	job, err := jobService.GetNextJob()
 
 	assert.NotNil(t, job)
 	assert.Nil(t, err)
@@ -217,7 +217,7 @@ func Test_GetNextJob_Returns_NoError(t *testing.T) {
 }
 
 func Test_SetStatus_NoJobWithId_Returns_NotFoundError(t *testing.T) {
-	teardown := setup(t)
+	teardown := setupJob(t)
 	defer teardown()
 	id := ksuid.New().String()
 	updReq := dto.JobStatusUpdateRequest{
@@ -225,9 +225,9 @@ func Test_SetStatus_NoJobWithId_Returns_NotFoundError(t *testing.T) {
 		ErrMsg: "",
 	}
 	apiError := api_error.NewNotFoundError(fmt.Sprintf("Job with id %v does not exist", id))
-	mockRepo.EXPECT().FindById(id).Return(nil, apiError)
+	mockJobRepo.EXPECT().FindById(id).Return(nil, apiError)
 
-	err := service.SetStatus(id, updReq)
+	err := jobService.SetStatus(id, updReq)
 
 	assert.NotNil(t, err)
 	assert.EqualValues(t, apiError.Message(), err.Message())
@@ -235,17 +235,17 @@ func Test_SetStatus_NoJobWithId_Returns_NotFoundError(t *testing.T) {
 }
 
 func Test_SetStatus_WrongStatusValue_Returns_BadRequestError(t *testing.T) {
-	teardown := setup(t)
+	teardown := setupJob(t)
 	defer teardown()
 	newJob, _ := realdomain.NewJob("job 1", "url1")
 	id := newJob.Id.String()
-	mockRepo.EXPECT().FindById(id).Return(newJob, nil)
+	mockJobRepo.EXPECT().FindById(id).Return(newJob, nil)
 	updReq := dto.JobStatusUpdateRequest{
 		Status: "wrong_value",
 		ErrMsg: "",
 	}
 
-	err := service.SetStatus(id, updReq)
+	err := jobService.SetStatus(id, updReq)
 
 	assert.NotNil(t, err)
 	assert.EqualValues(t, fmt.Sprintf("Could not parse status value %v", updReq.Status), err.Message())
@@ -253,20 +253,20 @@ func Test_SetStatus_WrongStatusValue_Returns_BadRequestError(t *testing.T) {
 }
 
 func Test_SetStatus_StatusFailed_Returns_Error(t *testing.T) {
-	teardown := setup(t)
+	teardown := setupJob(t)
 	defer teardown()
 	newJob, _ := realdomain.NewJob("job 1", "url1")
 	id := newJob.Id.String()
-	mockRepo.EXPECT().FindById(id).Return(newJob, nil)
+	mockJobRepo.EXPECT().FindById(id).Return(newJob, nil)
 	updReq := dto.JobStatusUpdateRequest{
 		Status: "failed",
 		ErrMsg: "failure_reason",
 	}
 	updReqParsed, _ := realdomain.ParseStatusRequest(updReq)
 	apiError := api_error.NewInternalServerError("something bad happened", nil)
-	mockRepo.EXPECT().SetStatus(id, *updReqParsed).Return(apiError)
+	mockJobRepo.EXPECT().SetStatus(id, *updReqParsed).Return(apiError)
 
-	err := service.SetStatus(id, updReq)
+	err := jobService.SetStatus(id, updReq)
 
 	assert.NotNil(t, err)
 	assert.EqualValues(t, "something bad happened", err.Message())
@@ -274,31 +274,31 @@ func Test_SetStatus_StatusFailed_Returns_Error(t *testing.T) {
 }
 
 func Test_SetStatus_StatusFailed_Returns_NoError(t *testing.T) {
-	teardown := setup(t)
+	teardown := setupJob(t)
 	defer teardown()
 	newJob, _ := realdomain.NewJob("job 1", "url1")
 	id := newJob.Id.String()
-	mockRepo.EXPECT().FindById(id).Return(newJob, nil)
+	mockJobRepo.EXPECT().FindById(id).Return(newJob, nil)
 	updReq := dto.JobStatusUpdateRequest{
 		Status: "failed",
 		ErrMsg: "failure_reason",
 	}
 	updReqParsed, _ := realdomain.ParseStatusRequest(updReq)
-	mockRepo.EXPECT().SetStatus(id, *updReqParsed).Return(nil)
+	mockJobRepo.EXPECT().SetStatus(id, *updReqParsed).Return(nil)
 
-	err := service.SetStatus(id, updReq)
+	err := jobService.SetStatus(id, updReq)
 
 	assert.Nil(t, err)
 }
 
 func Test_SetResult_NoJobWithId_Returns_NotFoundError(t *testing.T) {
-	teardown := setup(t)
+	teardown := setupJob(t)
 	defer teardown()
 	id := ksuid.New().String()
 	apiError := api_error.NewNotFoundError(fmt.Sprintf("Job with id %v does not exist", id))
-	mockRepo.EXPECT().FindById(id).Return(nil, apiError)
+	mockJobRepo.EXPECT().FindById(id).Return(nil, apiError)
 
-	err := service.SetResult(id, "new result data")
+	err := jobService.SetResult(id, "new result data")
 
 	assert.NotNil(t, err)
 	assert.EqualValues(t, apiError.Message(), err.Message())
@@ -306,15 +306,15 @@ func Test_SetResult_NoJobWithId_Returns_NotFoundError(t *testing.T) {
 }
 
 func Test_SetResult_Returns_Error(t *testing.T) {
-	teardown := setup(t)
+	teardown := setupJob(t)
 	defer teardown()
 	newJob, _ := realdomain.NewJob("job 1", "url1")
 	id := newJob.Id.String()
 	apiError := api_error.NewInternalServerError("something went wrong", nil)
-	mockRepo.EXPECT().FindById(id).Return(newJob, nil)
-	mockRepo.EXPECT().SetResult(id, "new result data").Return(apiError)
+	mockJobRepo.EXPECT().FindById(id).Return(newJob, nil)
+	mockJobRepo.EXPECT().SetResult(id, "new result data").Return(apiError)
 
-	err := service.SetResult(id, "new result data")
+	err := jobService.SetResult(id, "new result data")
 
 	assert.NotNil(t, err)
 	assert.EqualValues(t, apiError.Message(), err.Message())
@@ -322,14 +322,14 @@ func Test_SetResult_Returns_Error(t *testing.T) {
 }
 
 func Test_SetResult_Returns_NoError(t *testing.T) {
-	teardown := setup(t)
+	teardown := setupJob(t)
 	defer teardown()
 	newJob, _ := realdomain.NewJob("job 1", "url1")
 	id := newJob.Id.String()
-	mockRepo.EXPECT().FindById(id).Return(newJob, nil)
-	mockRepo.EXPECT().SetResult(id, "new result data").Return(nil)
+	mockJobRepo.EXPECT().FindById(id).Return(newJob, nil)
+	mockJobRepo.EXPECT().SetResult(id, "new result data").Return(nil)
 
-	err := service.SetResult(id, "new result data")
+	err := jobService.SetResult(id, "new result data")
 
 	assert.Nil(t, err)
 }

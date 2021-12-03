@@ -18,8 +18,8 @@ var (
 	router      *gin.Engine
 	jobHandler  handler.JobHandlers
 	azureClient *azblob.ServiceClient
-	jobService  service.DefaultJobService
-	fileService service.DefaultFileService
+	jobService  service.JobService
+	fileService service.FileService
 )
 
 func connectToAzureBlob() (*azblob.ServiceClient, api_error.ApiErr) {

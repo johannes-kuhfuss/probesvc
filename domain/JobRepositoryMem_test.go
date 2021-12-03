@@ -13,7 +13,7 @@ var (
 	jobRepo JobRepositoryMem
 )
 
-func setup() func() {
+func setupJob() func() {
 	jobRepo = NewJobRepositoryMem()
 	return func() {
 		jobRepo.jobList = nil
@@ -21,7 +21,7 @@ func setup() func() {
 }
 
 func Test_FindAll_NoJobs_Returns_NotFoundError(t *testing.T) {
-	teardown := setup()
+	teardown := setupJob()
 	defer teardown()
 
 	jList, err := jobRepo.FindAll("")
@@ -33,7 +33,7 @@ func Test_FindAll_NoJobs_Returns_NotFoundError(t *testing.T) {
 }
 
 func Test_FindAll_NoJobsAfterFilter_Returns_NotFoundError(t *testing.T) {
-	teardown := setup()
+	teardown := setupJob()
 	defer teardown()
 	fillJobList()
 
@@ -46,7 +46,7 @@ func Test_FindAll_NoJobsAfterFilter_Returns_NotFoundError(t *testing.T) {
 }
 
 func Test_FindAll_NoFilter_Returns_NoError(t *testing.T) {
-	teardown := setup()
+	teardown := setupJob()
 	defer teardown()
 	fillJobList()
 
@@ -58,7 +58,7 @@ func Test_FindAll_NoFilter_Returns_NoError(t *testing.T) {
 }
 
 func Test_FindAll_WithFilter_Returns_NoError(t *testing.T) {
-	teardown := setup()
+	teardown := setupJob()
 	defer teardown()
 	fillJobList()
 
@@ -71,7 +71,7 @@ func Test_FindAll_WithFilter_Returns_NoError(t *testing.T) {
 }
 
 func Test_FindById_NoJobs_Returns_NotFoundError(t *testing.T) {
-	teardown := setup()
+	teardown := setupJob()
 	defer teardown()
 
 	job, err := jobRepo.FindById("")
@@ -83,7 +83,7 @@ func Test_FindById_NoJobs_Returns_NotFoundError(t *testing.T) {
 }
 
 func Test_FindById_NoJobsAfterFilter_Returns_NotFoundError(t *testing.T) {
-	teardown := setup()
+	teardown := setupJob()
 	defer teardown()
 	fillJobList()
 	id := ksuid.New().String()
@@ -97,7 +97,7 @@ func Test_FindById_NoJobsAfterFilter_Returns_NotFoundError(t *testing.T) {
 }
 
 func Test_FindById_Returns_NoError(t *testing.T) {
-	teardown := setup()
+	teardown := setupJob()
 	defer teardown()
 	id := fillJobList()
 
@@ -124,7 +124,7 @@ func fillJobList() (id string) {
 }
 
 func Test_Create_Returns_NoError(t *testing.T) {
-	teardown := setup()
+	teardown := setupJob()
 	defer teardown()
 	job, _ := NewJob("job 1", "url 1")
 
@@ -135,7 +135,7 @@ func Test_Create_Returns_NoError(t *testing.T) {
 }
 
 func Test_DeleteById_NoJobs_Returns_NotFoundError(t *testing.T) {
-	teardown := setup()
+	teardown := setupJob()
 	defer teardown()
 
 	err := jobRepo.DeleteById("")
@@ -146,7 +146,7 @@ func Test_DeleteById_NoJobs_Returns_NotFoundError(t *testing.T) {
 }
 
 func Test_DeleteById_NoJobWithId_Returns_NotFoundError(t *testing.T) {
-	teardown := setup()
+	teardown := setupJob()
 	defer teardown()
 	fillJobList()
 	id := ksuid.New().String()
@@ -159,7 +159,7 @@ func Test_DeleteById_NoJobWithId_Returns_NotFoundError(t *testing.T) {
 }
 
 func Test_DeleteById_Returns_NoError(t *testing.T) {
-	teardown := setup()
+	teardown := setupJob()
 	defer teardown()
 	id := fillJobList()
 
@@ -173,7 +173,7 @@ func Test_DeleteById_Returns_NoError(t *testing.T) {
 }
 
 func Test_GetNext_NoJobs_Returns_NotFoundError(t *testing.T) {
-	teardown := setup()
+	teardown := setupJob()
 	defer teardown()
 
 	job, err := jobRepo.GetNext()
@@ -185,7 +185,7 @@ func Test_GetNext_NoJobs_Returns_NotFoundError(t *testing.T) {
 }
 
 func Test_GetNext_NoCreatedJobs_Returns_NotFoundError(t *testing.T) {
-	teardown := setup()
+	teardown := setupJob()
 	defer teardown()
 	createdId := fillJobList()
 	newStatus := JobStatusUpdate{
@@ -203,7 +203,7 @@ func Test_GetNext_NoCreatedJobs_Returns_NotFoundError(t *testing.T) {
 }
 
 func Test_GetNext_Returns_NoError(t *testing.T) {
-	teardown := setup()
+	teardown := setupJob()
 	defer teardown()
 	createdId := fillJobList()
 
@@ -215,7 +215,7 @@ func Test_GetNext_Returns_NoError(t *testing.T) {
 }
 
 func Test_SetStatus_NoJob_Returns_NotFoundError(t *testing.T) {
-	teardown := setup()
+	teardown := setupJob()
 	defer teardown()
 	newStatus := JobStatusUpdate{}
 	err := jobRepo.SetStatus("", newStatus)
@@ -226,7 +226,7 @@ func Test_SetStatus_NoJob_Returns_NotFoundError(t *testing.T) {
 }
 
 func Test_SetStatus_Returns_NoError(t *testing.T) {
-	teardown := setup()
+	teardown := setupJob()
 	defer teardown()
 	id := fillJobList()
 	newStatus := JobStatusUpdate{
@@ -242,7 +242,7 @@ func Test_SetStatus_Returns_NoError(t *testing.T) {
 }
 
 func Test_SetResult_NoJob_Returns_NotFoundError(t *testing.T) {
-	teardown := setup()
+	teardown := setupJob()
 	defer teardown()
 	err := jobRepo.SetResult("", "new data")
 
@@ -252,7 +252,7 @@ func Test_SetResult_NoJob_Returns_NotFoundError(t *testing.T) {
 }
 
 func Test_SetResult_Returns_NoError(t *testing.T) {
-	teardown := setup()
+	teardown := setupJob()
 	defer teardown()
 	id := fillJobList()
 	err := jobRepo.SetResult(id, "new data")

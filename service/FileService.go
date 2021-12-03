@@ -22,6 +22,7 @@ import (
 
 type FileService interface {
 	Run()
+	startJob(*dto.JobResponse) api_error.ApiErr
 }
 
 type DefaultFileService struct {
@@ -62,24 +63,27 @@ func (s DefaultFileService) Run() {
 	}
 }
 
-func (s DefaultFileService) startJob(job *dto.JobResponse) {
+func (s DefaultFileService) startJob(job *dto.JobResponse) api_error.ApiErr {
 	logger.Info(fmt.Sprintf("Started data extraction for Job ID %v with Source %v", job.Id, job.SrcUrl))
 	jobStatus.Status = "running"
-	s.jobSrv.SetStatus(job.Id, jobStatus)
+	err := s.jobSrv.SetStatus(job.Id, jobStatus)
+	return err
 }
 
-func (s DefaultFileService) failJob(job *dto.JobResponse, err api_error.ApiErr) {
-	logger.Error("Error while analyzing file", err)
+func (s DefaultFileService) failJob(job *dto.JobResponse, failErr api_error.ApiErr) api_error.ApiErr {
+	logger.Error("Error while analyzing file", failErr)
 	jobStatus.Status = "failed"
 	jobStatus.ErrMsg = "Error while analyzing file"
-	s.jobSrv.SetStatus(job.Id, jobStatus)
+	err := s.jobSrv.SetStatus(job.Id, jobStatus)
+	return err
 }
 
-func (s DefaultFileService) finishJob(job *dto.JobResponse) {
+func (s DefaultFileService) finishJob(job *dto.JobResponse) api_error.ApiErr {
 	logger.Info(fmt.Sprintf("Finished data extraction for Job ID %v with Source %v", job.Id, job.SrcUrl))
 	jobStatus.Status = "failed"
 	jobStatus.ErrMsg = "Error while analyzing file"
-	s.jobSrv.SetStatus(job.Id, jobStatus)
+	err := s.jobSrv.SetStatus(job.Id, jobStatus)
+	return err
 }
 
 func (s DefaultFileService) addResultToJob(job *dto.JobResponse, result string) api_error.ApiErr {

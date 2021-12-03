@@ -290,3 +290,46 @@ func Test_SetStatus_StatusFailed_Returns_NoError(t *testing.T) {
 
 	assert.Nil(t, err)
 }
+
+func Test_SetResult_NoJobWithId_Returns_NotFoundError(t *testing.T) {
+	teardown := setup(t)
+	defer teardown()
+	id := ksuid.New().String()
+	apiError := api_error.NewNotFoundError(fmt.Sprintf("Job with id %v does not exist", id))
+	mockRepo.EXPECT().FindById(id).Return(nil, apiError)
+
+	err := service.SetResult(id, "new result data")
+
+	assert.NotNil(t, err)
+	assert.EqualValues(t, apiError.Message(), err.Message())
+	assert.EqualValues(t, http.StatusNotFound, err.StatusCode())
+}
+
+func Test_SetResult_Returns_Error(t *testing.T) {
+	teardown := setup(t)
+	defer teardown()
+	newJob, _ := realdomain.NewJob("job 1", "url1")
+	id := newJob.Id.String()
+	apiError := api_error.NewInternalServerError("something went wrong", nil)
+	mockRepo.EXPECT().FindById(id).Return(newJob, nil)
+	mockRepo.EXPECT().SetResult(id, "new result data").Return(apiError)
+
+	err := service.SetResult(id, "new result data")
+
+	assert.NotNil(t, err)
+	assert.EqualValues(t, apiError.Message(), err.Message())
+	assert.EqualValues(t, http.StatusInternalServerError, err.StatusCode())
+}
+
+func Test_SetResult_Returns_NoError(t *testing.T) {
+	teardown := setup(t)
+	defer teardown()
+	newJob, _ := realdomain.NewJob("job 1", "url1")
+	id := newJob.Id.String()
+	mockRepo.EXPECT().FindById(id).Return(newJob, nil)
+	mockRepo.EXPECT().SetResult(id, "new result data").Return(nil)
+
+	err := service.SetResult(id, "new result data")
+
+	assert.Nil(t, err)
+}

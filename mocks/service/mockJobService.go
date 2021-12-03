@@ -109,6 +109,20 @@ func (mr *MockJobServiceMockRecorder) GetNextJob() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNextJob", reflect.TypeOf((*MockJobService)(nil).GetNextJob))
 }
 
+// SetResult mocks base method.
+func (m *MockJobService) SetResult(arg0, arg1 string) api_error.ApiErr {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetResult", arg0, arg1)
+	ret0, _ := ret[0].(api_error.ApiErr)
+	return ret0
+}
+
+// SetResult indicates an expected call of SetResult.
+func (mr *MockJobServiceMockRecorder) SetResult(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetResult", reflect.TypeOf((*MockJobService)(nil).SetResult), arg0, arg1)
+}
+
 // SetStatus mocks base method.
 func (m *MockJobService) SetStatus(arg0 string, arg1 dto.JobStatusUpdateRequest) api_error.ApiErr {
 	m.ctrl.T.Helper()

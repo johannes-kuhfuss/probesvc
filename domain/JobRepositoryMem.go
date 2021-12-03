@@ -133,3 +133,13 @@ func (csm JobRepositoryMem) SetStatus(id string, newStatus JobStatusUpdate) api_
 	csm.Save(*job)
 	return nil
 }
+
+func (csm JobRepositoryMem) SetResult(id string, data string) api_error.ApiErr {
+	job, err := csm.FindById(id)
+	if err != nil {
+		return err
+	}
+	job.TechInfo = data
+	csm.Save(*job)
+	return nil
+}

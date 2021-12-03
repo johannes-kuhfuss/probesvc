@@ -48,6 +48,7 @@ type JobRepository interface {
 	DeleteById(string) api_error.ApiErr
 	GetNext() (*Job, api_error.ApiErr)
 	SetStatus(string, JobStatusUpdate) api_error.ApiErr
+	SetResult(string, string) api_error.ApiErr
 }
 
 func createJobName(name string) string {

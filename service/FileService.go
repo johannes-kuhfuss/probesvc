@@ -68,8 +68,11 @@ func (s DefaultFileService) Run() {
 	}
 }
 
-func (s DefaultFileService) addResultToJob(is string, result string) api_error.ApiErr {
-	logger.Info(result)
+func (s DefaultFileService) addResultToJob(id string, result string) api_error.ApiErr {
+	err := s.jobSrv.SetResult(id, result)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

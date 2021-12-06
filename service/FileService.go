@@ -23,6 +23,9 @@ import (
 type FileService interface {
 	Run()
 	startJob(*dto.JobResponse) api_error.ApiErr
+	failJob(*dto.JobResponse, api_error.ApiErr) api_error.ApiErr
+	finishJob(*dto.JobResponse) api_error.ApiErr
+	addResultToJob(*dto.JobResponse, string) api_error.ApiErr
 }
 
 type DefaultFileService struct {
@@ -80,8 +83,8 @@ func (s DefaultFileService) failJob(job *dto.JobResponse, failErr api_error.ApiE
 
 func (s DefaultFileService) finishJob(job *dto.JobResponse) api_error.ApiErr {
 	logger.Info(fmt.Sprintf("Finished data extraction for Job ID %v with Source %v", job.Id, job.SrcUrl))
-	jobStatus.Status = "failed"
-	jobStatus.ErrMsg = "Error while analyzing file"
+	jobStatus.Status = "finished"
+	jobStatus.ErrMsg = ""
 	err := s.jobSrv.SetStatus(job.Id, jobStatus)
 	return err
 }
@@ -142,7 +145,7 @@ func runProbe(cmd *exec.Cmd) (data string, err api_error.ApiErr) {
 		return "", api_error.NewInternalServerError(fmt.Sprintf("error running %s [%s]", binPath, stdErr.String()), runErr)
 	}
 	if stdErr.Len() > 0 {
-		return "", api_error.NewInternalServerError(fmt.Sprintf("ffprobe error: %s", stdErr.String()), nil)
+		return "", api_error.NewInternalServerError(fmt.Sprintf("error running %s [%s]", binPath, stdErr.String()), nil)
 	}
 	data = outputBuf.String()
 

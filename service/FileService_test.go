@@ -208,3 +208,7 @@ func Test_runProbe_Returns_NoError(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, data)
 }
+
+func Test_getAzureReader_Returns_(t *testing.T) {
+
+}

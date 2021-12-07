@@ -20,12 +20,14 @@ import (
 	"github.com/johannes-kuhfuss/services_utils/logger"
 )
 
+//go:generate mockgen -destination=../mocks/service/mockFileService.go -package=service github.com/johannes-kuhfuss/probesvc/service FileService
 type FileService interface {
 	Run()
 	startJob(*dto.JobResponse) api_error.ApiErr
 	failJob(*dto.JobResponse, api_error.ApiErr) api_error.ApiErr
 	finishJob(*dto.JobResponse) api_error.ApiErr
 	addResultToJob(*dto.JobResponse, string) api_error.ApiErr
+	getAzureReader(string) (*io.ReadCloser, api_error.ApiErr)
 }
 
 type DefaultFileService struct {

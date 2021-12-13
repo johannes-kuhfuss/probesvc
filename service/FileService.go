@@ -36,7 +36,6 @@ type DefaultFileService struct {
 }
 
 var (
-	binPath   string                     = "./service/ffprobe.exe"
 	jobStatus dto.JobStatusUpdateRequest = dto.JobStatusUpdateRequest{}
 )
 
@@ -107,7 +106,7 @@ func (s DefaultFileService) analyzeFile(srcUrl string) (string, api_error.ApiErr
 	}
 
 	ffArgs := []string{"-loglevel", "fatal", "-print_format", "json", "-show_format", "-show_streams", "-"}
-	cmd := exec.CommandContext(ctx, binPath, ffArgs...)
+	cmd := exec.CommandContext(ctx, config.FfprobePath, ffArgs...)
 	cmd.Stdin = *reader
 
 	result, runErr := runProbe(cmd)
@@ -144,10 +143,10 @@ func runProbe(cmd *exec.Cmd) (data string, err api_error.ApiErr) {
 
 	runErr := cmd.Run()
 	if runErr != nil {
-		return "", api_error.NewInternalServerError(fmt.Sprintf("error running %s [%s]", binPath, stdErr.String()), runErr)
+		return "", api_error.NewInternalServerError(fmt.Sprintf("error running %s [%s]", config.FfprobePath, stdErr.String()), runErr)
 	}
 	if stdErr.Len() > 0 {
-		return "", api_error.NewInternalServerError(fmt.Sprintf("error running %s [%s]", binPath, stdErr.String()), nil)
+		return "", api_error.NewInternalServerError(fmt.Sprintf("error running %s [%s]", config.FfprobePath, stdErr.String()), nil)
 	}
 	data = outputBuf.String()
 

@@ -23,16 +23,24 @@ var (
 	StorageBaseUrl     string
 	Shutdown           bool = false
 	NoJobWaitTime      int  = 10
+	FfprobePath        string
 )
 
 func InitConfig(file string) error {
 	logger.Info("Initalizing configuration")
 	loadConfig(file)
 	err := configStorage()
+	if err != nil {
+		return err
+	}
+	err = ffProbepathConfig()
+	if err != nil {
+		return err
+	}
 	configGin()
 	configServer()
 	logger.Info("Done initalizing configuration")
-	return err
+	return nil
 }
 
 func loadConfig(file string) error {
@@ -60,6 +68,16 @@ func configStorage() error {
 	if !ok || strings.TrimSpace(StorageBaseUrl) == "" {
 		logger.Error("environment variable \"STORAGE_BASE_URL\" not set. Cannot start", nil)
 		return errors.New("environment variable \"STORAGE_BASE_URL\" not set. Cannot start")
+	}
+	return nil
+}
+
+func ffProbepathConfig() error {
+	var ok bool
+	FfprobePath, ok = os.LookupEnv("FFPROBE_PATH")
+	if !ok || strings.TrimSpace(FfprobePath) == "" {
+		logger.Error("environment variable \"FFPROBE_PATH\" not set. Cannot start", nil)
+		return errors.New("environment variable \"FFPROBE_PATH\" not set. Cannot start")
 	}
 	return nil
 }

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/johannes-kuhfuss/probesvc/config"
 	realdomain "github.com/johannes-kuhfuss/probesvc/domain"
 	"github.com/johannes-kuhfuss/probesvc/dto"
 	"github.com/johannes-kuhfuss/probesvc/mocks/domain"
@@ -22,6 +23,7 @@ var (
 	jobFileCtrl     *gomock.Controller
 	mockJobFileRepo *domain.MockJobRepository
 	jobFileService  JobService
+	probePath       string = "ffprobe.exe"
 )
 
 func setupFile(t *testing.T) func() {
@@ -184,31 +186,27 @@ func Test_addResultToJob_Returns_NoError(t *testing.T) {
 }
 
 func Test_runProbe_Returns_RunError(t *testing.T) {
+	config.FfprobePath = probePath
 	ctx := context.Background()
-	binPath = "ffprobe.exe"
 	ffArgs := []string{"-loglevel", "warning"}
-	cmd := exec.CommandContext(ctx, binPath, ffArgs...)
+	cmd := exec.CommandContext(ctx, probePath, ffArgs...)
 
 	data, err := runProbe(cmd)
 
 	assert.EqualValues(t, "", data)
 	assert.NotNil(t, err)
-	assert.EqualValues(t, fmt.Sprintf("error running %v [You have to specify one input file.\r\nUse -h to get full help or, even better, run 'man ffprobe'.\r\n]", binPath), err.Message())
+	assert.EqualValues(t, fmt.Sprintf("error running %v [You have to specify one input file.\r\nUse -h to get full help or, even better, run 'man ffprobe'.\r\n]", probePath), err.Message())
 	assert.EqualValues(t, http.StatusInternalServerError, err.StatusCode())
 }
 
 func Test_runProbe_Returns_NoError(t *testing.T) {
+	config.FfprobePath = probePath
 	ctx := context.Background()
-	binPath = "ffprobe.exe"
 	ffArgs := []string{"-loglevel", "fatal", "-print_format", "json", "-show_format", "-show_streams", "../testmedia/BZ2A3738.MOV"}
-	cmd := exec.CommandContext(ctx, binPath, ffArgs...)
+	cmd := exec.CommandContext(ctx, probePath, ffArgs...)
 
 	data, err := runProbe(cmd)
 
 	assert.Nil(t, err)
 	assert.NotNil(t, data)
-}
-
-func Test_getAzureReader_Returns_(t *testing.T) {
-
 }

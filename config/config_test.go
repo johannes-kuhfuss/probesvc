@@ -36,6 +36,8 @@ func writeTestEnv(fileName string) {
 	checkErr(err)
 	_, err = w.WriteString("STORAGE_BASE_URL=\"storage_url\"\n")
 	checkErr(err)
+	_, err = w.WriteString("FFPROBE_PATH=\"ffpath\"\n")
+	checkErr(err)
 	w.Flush()
 }
 
@@ -51,6 +53,7 @@ func unsetEnvVars() {
 	os.Unsetenv("STORAGE_ACCOUNT_NAME")
 	os.Unsetenv("STORAGE_ACCOUNT_KEY")
 	os.Unsetenv("STORAGE_BASE_URL")
+	os.Unsetenv("FFPROBE_PATH")
 }
 
 func Test_loadConfig_NoEnvFile_Returns_Error(t *testing.T) {
@@ -151,6 +154,12 @@ func Test_InitConfig_Returns_Error(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
+func Test_ffProbepathConfig_Returns_Error(t *testing.T) {
+	err := ffProbepathConfig()
+
+	assert.NotNil(t, err)
+}
+
 func Test_InitConfig_ReturnsNoError(t *testing.T) {
 	writeTestEnv(testEnvFile)
 	defer deleteEnvFile(testEnvFile)
@@ -163,4 +172,5 @@ func Test_InitConfig_ReturnsNoError(t *testing.T) {
 	assert.EqualValues(t, "9999", ServerPort)
 	assert.EqualValues(t, "storage_account", StorageAccountName)
 	assert.EqualValues(t, "storage_key", StorageAccountKey)
+	assert.EqualValues(t, "ffpath", FfprobePath)
 }
